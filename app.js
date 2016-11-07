@@ -5,31 +5,28 @@ var conn = new jsforce.Connection();
 var username = process.env.SF_STRIKE_USERNAME;
 var password = process.env.SF_STRIKE_PASSWORD;
 
-prompt.message = 'Strike-CLI';
-
-var promptSchema = {
-	properties: {
-		componentName: {
-			description: 'Component Name'
-		}
-	}
-};
-
+var promptSchema = configurePromptSchema();
 
 conn.login(username, password, function(err, res) {
 	if (err) { return console.error(err); }
 	prompt.start();
 	prompt.get(promptSchema, function (err, res){
-		var componentName
-		if(res.componentName != ''){ 
-			componentName = res.componentName;	
-		} else { //fall back on a valid component name
-			componentName = createComponentName();
-		}
-		
+		var componentName = res.inputComponentName || createComponentName();
 		createAuraDefinitionBundle(componentName);
 	});
 });
+
+function configurePromptSchema(){
+	prompt.message = 'Strike-CLI';
+	var promptSchema = {
+		properties: {
+			inputComponentName: {
+				description: 'Component Name'
+			}
+		}
+	};
+	return promptSchema;
+}
 
 function createAuraDefinitionBundle(componentName){
 	conn.tooling.sobject('AuraDefinitionBundle').create({
@@ -39,8 +36,8 @@ function createAuraDefinitionBundle(componentName){
 	  	ApiVersion:'32.0'
 	}, 	function(err, res){
 		if (err) { return console.error(err); }
-		console.log(res);
 		console.log(componentName + ' bundle has been created');
+		console.log(res);
 
 		var bundleId = res.id;
 
