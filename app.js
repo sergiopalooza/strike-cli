@@ -1,14 +1,34 @@
+var prompt = require('prompt');
 var jsforce = require('jsforce');
 var conn = new jsforce.Connection();
 
 var username = process.env.SF_STRIKE_USERNAME;
 var password = process.env.SF_STRIKE_PASSWORD;
 
+prompt.message = 'Strike-CLI';
+
+var promptSchema = {
+	properties: {
+		componentName: {
+			description: 'Component Name'
+		}
+	}
+};
+
 
 conn.login(username, password, function(err, res) {
 	if (err) { return console.error(err); }
-	var componentName = createComponentName();
-	createAuraDefinitionBundle(componentName);
+	prompt.start();
+	prompt.get(promptSchema, function (err, res){
+		var componentName
+		if(res.componentName != ''){ 
+			componentName = res.componentName;	
+		} else { //fall back on a valid component name
+			componentName = createComponentName();
+		}
+		
+		createAuraDefinitionBundle(componentName);
+	});
 });
 
 function createAuraDefinitionBundle(componentName){
@@ -20,6 +40,7 @@ function createAuraDefinitionBundle(componentName){
 	}, 	function(err, res){
 		if (err) { return console.error(err); }
 		console.log(res);
+		console.log(componentName + ' bundle has been created');
 
 		var bundleId = res.id;
 
@@ -74,6 +95,5 @@ function createComponentName(){
 
 	var randomInt = dateComponents.join("");
 	var componentName = 'Prototype_Component' + randomInt;
-	console.log(componentName);
 	return componentName;
 }

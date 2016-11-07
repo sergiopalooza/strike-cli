@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "jsforce": "^1.7.1"
+    "jsforce": "^1.7.1",
+    "prompt": "^1.0.0"
   }
 }
