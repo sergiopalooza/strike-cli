@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 var prompt = require('prompt');
 var jsforce = require('jsforce');
 var conn = new jsforce.Connection();
@@ -11,8 +12,10 @@ conn.login(username, password, function(err, res) {
 	if (err) { return console.error(err); }
 	prompt.start();
 	prompt.get(promptSchema, function (err, res){
-		var componentName = res.inputComponentName || createComponentName();
-		createAuraDefinitionBundle(componentName);
+		var componentInfo = {};
+		componentInfo.name = res.inputComponentName || createComponentName();
+		componentInfo.description = res.inputDescription || 'I was created from Strike-CLI';
+		createAuraDefinitionBundle(componentInfo);
 	});
 });
 
@@ -22,28 +25,31 @@ function configurePromptSchema(){
 		properties: {
 			inputComponentName: {
 				description: 'Component Name'
+			},
+			inputDescription: {
+				description: 'Description'
 			}
 		}
 	};
 	return promptSchema;
 }
 
-function createAuraDefinitionBundle(componentName){
+function createAuraDefinitionBundle(componentInfo){
 	conn.tooling.sobject('AuraDefinitionBundle').create({
-		Description: 'I was created from Strike-CLI', // my description
-	  	DeveloperName: componentName,
-	  	MasterLabel: componentName, 
+		Description: componentInfo.description, // my description
+	  	DeveloperName: componentInfo.name,
+	  	MasterLabel: componentInfo.name, 
 	  	ApiVersion:'32.0'
 	}, 	function(err, res){
 		if (err) { return console.error(err); }
-		console.log(componentName + ' bundle has been created');
+		console.log(componentInfo.name + ' bundle has been created');
 		console.log(res);
 
 		var bundleId = res.id;
 
 		switch(process.argv[2]){
 			case "fiddleBadge":
-				createFiddleButtonComponent(bundleId);
+				createFiddleBadgeComponent(bundleId);
 				break;
 			default:
 				createComponent(bundleId);
@@ -77,7 +83,7 @@ function createComponent(bundleId){
 	});
 }
 
-function createFiddleButtonComponent(bundleId){
+function createFiddleBadgeComponent(bundleId){
 	conn.tooling.sobject('AuraDefinition').create({
 		AuraDefinitionBundleId: bundleId,
 	    DefType: 'COMPONENT',
