@@ -41,18 +41,48 @@ function createAuraDefinitionBundle(componentName){
 
 		var bundleId = res.id;
 
-		createComponentApplication(bundleId);
-		createComponentController(bundleId);
-		createComponentHelper(bundleId);
+		switch(process.argv[2]){
+			case "fiddleBadge":
+				createFiddleButtonComponent(bundleId);
+				break;
+			default:
+				createComponent(bundleId);
+				createComponentController(bundleId);
+				createComponentHelper(bundleId);
+		}
 	});
 }
 
-function createComponentApplication(bundleId){
+function createApplication(bundleId){
 	conn.tooling.sobject('AuraDefinition').create({
 		AuraDefinitionBundleId: bundleId,
 	    DefType: 'APPLICATION',
 	    Format: 'XML',
 	    Source: '<aura:application></aura:application>'
+	  }, function(err, res) {
+	  if (err) { return console.error(err); }
+	  console.log(res);
+	});
+}
+
+function createComponent(bundleId){
+	conn.tooling.sobject('AuraDefinition').create({
+		AuraDefinitionBundleId: bundleId,
+	    DefType: 'COMPONENT',
+	    Format: 'XML',
+	    Source: '<aura:component></aura:component>'
+	  }, function(err, res) {
+	  if (err) { return console.error(err); }
+	  console.log(res);
+	});
+}
+
+function createFiddleButtonComponent(bundleId){
+	conn.tooling.sobject('AuraDefinition').create({
+		AuraDefinitionBundleId: bundleId,
+	    DefType: 'COMPONENT',
+	    Format: 'XML',
+	    Source: '<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes" access="global" ><aura:attribute name="label" type="String" default="Badge Label" /><aura:attribute name="class" type="String" /><lightning:layout horizontalAlign="space"><lightning:layoutItem flexibility="spread" padding="around-medium" class="wrap"><div class="container"><lightning:badge label="{!v.label}" class="{!v.class}">{!v.body}</lightning:badge></div></lightning:layoutItem><lightning:layoutItem flexibility="spread" padding="around-medium" class="wrap"><div class="control"><lightning:input name="label" value="{!v.label}" label="Label" /></div></lightning:layoutItem><lightning:layoutItem flexibility="spread" padding="around-medium" class="wrap"><div class="container">&lt;lightning:badge label=&quot;{!v.label}&quot; /&gt;</div></lightning:layoutItem></lightning:layout></aura:component>'
 	  }, function(err, res) {
 	  if (err) { return console.error(err); }
 	  console.log(res);
