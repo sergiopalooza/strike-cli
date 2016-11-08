@@ -1,12 +1,22 @@
 #!/usr/bin/env node
 var prompt = require('prompt');
 var jsforce = require('jsforce');
+var chalk = require('chalk');
+var figlet = require('figlet');
+var clear = require('clear');
 var conn = new jsforce.Connection();
 
 var username = process.env.SF_STRIKE_USERNAME;
 var password = process.env.SF_STRIKE_PASSWORD;
 
 var promptSchema = configurePromptSchema();
+
+clear();
+console.log(
+  chalk.cyan(
+    figlet.textSync('Strike-CLI', { horizontalLayout: 'full' })
+  )
+);
 
 conn.login(username, password, function(err, res) {
 	if (err) { return console.error(err); }
