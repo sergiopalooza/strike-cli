@@ -7,11 +7,11 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "bin": {
-    "strike": "app.js"
+    "strike-cli": "./app.js"
   },
   "author": "",
   "license": "ISC",
-  "devDependencies": {
+  "dependencies": {
     "jsforce": "^1.7.1",
     "prompt": "^1.0.0"
   }
