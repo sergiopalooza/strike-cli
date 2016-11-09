@@ -5,27 +5,6 @@ var jsforce = require('jsforce');
 var chalk = require('chalk');
 var figlet = require('figlet');
 var clear = require('clear');
-var Preferences = require('preferences');
-
-// var conn = new jsforce.Connection();
-// var conn;
-// var prefs = new Preferences('strike');
-
-// if(prefs.strike && prefs.strike.instanceUrl && prefs.strike.accessToken){
-// 	conn = new jsforce.Connection({
-// 		instanceUrl : prefs.strike.instanceUrl,
-// 		accessToken : prefs.strike.accessToken
-// 	});
-// 	// return prefs.strike.accessToken;
-// }
-
-
-var conn = new jsforce.Connection({
-	instanceUrl : 'https://strike-cli-dev-ed.my.salesforce.com',
-	accessToken : '00D4100000121Oc!ASAAQMqOHLNKYRGjYMm9QPHMs6Jup7bdTVig7QIFthJezjMskT6MybH1ABke0EvhcZFW__c.CMg89bxVAPeRQGE6lEfUxR6z'
-});
-
-var promptSchema = configurePromptSchema();
 
 clear();
 console.log(
@@ -34,46 +13,25 @@ console.log(
   )
 );
 
+var conn = new jsforce.Connection();
+var promptSchema = configurePromptSchema();
+
+
+
 prompt.start();
 prompt.get(promptSchema, function (err, res){
-	// var username = res.username || process.env.SF_STRIKE_USERNAME;
-	// var password = res.password || process.env.SF_STRIKE_PASSWORD;
+	var username = res.username || process.env.SF_STRIKE_USERNAME;
+	var password = res.password || process.env.SF_STRIKE_PASSWORD;
 	
 	var componentInfo = {};
 	componentInfo.name = res.inputComponentName || createComponentName();
 	componentInfo.description = res.inputDescription || 'I was created from Strike-CLI';
-	createAuraDefinitionBundle(componentInfo);
 
-	
-
-	// conn.login(username, password, function(err, res) {
-	// 	if (err) { return console.error(err); }
-	// 	console.log(conn.accessToken);
- //  		console.log(conn.instanceUrl);
-	// 	createAuraDefinitionBundle(componentInfo);
-	// });
-	
-	// conn.login(username, password, function(err, res) {
-	// 	if (err) { return console.error(err); }
-	// 	console.log(conn.accessToken);
- //  		console.log(conn.instanceUrl);
-	// 	createAuraDefinitionBundle(componentInfo);
-	// });
+	conn.login(username, password, function(err, res) {
+		if (err) { return console.error(err); }
+		createAuraDefinitionBundle(componentInfo);
+	});
 });
-
-// conn.login(username, password, function(err, res) {
-// 	if (err) { return console.error(err); }
-	
-// 	prompt.start();
-// 	prompt.get(promptSchema, function (err, res){
-// 		var componentInfo = {};
-// 		componentInfo.name = res.inputComponentName || createComponentName();
-// 		componentInfo.description = res.inputDescription || 'I was created from Strike-CLI';
-
-
-// 		createAuraDefinitionBundle(componentInfo);
-// 	});
-// });
 
 function configurePromptSchema(){
 	prompt.message = 'Strike-CLI';
@@ -193,3 +151,8 @@ function createComponentName(){
 	var componentName = 'Prototype_Component' + randomInt;
 	return componentName;
 }
+
+// var conn = new jsforce.Connection({
+// 	instanceUrl : 'https://strike-cli-dev-ed.my.salesforce.com',
+// 	accessToken : '00D4100000121Oc!ASAAQMqOHLNKYRGjYMm9QPHMs6Jup7bdTVig7QIFthJezjMskT6MybH1ABke0EvhcZFW__c.CMg89bxVAPeRQGE6lEfUxR6z'
+// });
