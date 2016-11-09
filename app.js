@@ -70,15 +70,9 @@ function createAuraDefinitionBundle(componentInfo){
 
 		var bundleId = res.id;
 
-		switch(process.argv[2]){
-			case "fiddleBadge":
-				createFiddleBadgeComponent(bundleId);
-				break;
-			default:
-				createComponent(bundleId);
-				createComponentController(bundleId);
-				createComponentHelper(bundleId);
-		}
+		createComponent(bundleId);
+		createComponentController(bundleId);
+		createComponentHelper(bundleId);
 	});
 }
 
@@ -95,22 +89,14 @@ function createApplication(bundleId){
 }
 
 function createComponent(bundleId){
-	conn.tooling.sobject('AuraDefinition').create({
-		AuraDefinitionBundleId: bundleId,
-	    DefType: 'COMPONENT',
-	    Format: 'XML',
-	    Source: '<aura:component></aura:component>'
-	  }, function(err, res) {
-	  if (err) { return console.error(err); }
-	  console.log(res);
-	});
-}
-
-function createFiddleBadgeComponent(bundleId){
-	fs.readFile('./fiddleBadge/fiddle_badge.cmp', 'utf8', function(err, contents){
-		if (err) { return console.error(err); }
-		var cmpContent = contents;
-
+	fs.readFile('./' + process.argv[2] + '/' + process.argv[2] + '.cmp', 'utf8', function(err, contents){
+		if(err){
+			console.log('CMP file not found. Falling back on default');
+			var cmpContent = '<aura:component></aura:component>';
+		} else {
+			var cmpContent = contents;	
+		}
+		
 		conn.tooling.sobject('AuraDefinition').create({
 			AuraDefinitionBundleId: bundleId,
 		    DefType: 'COMPONENT',
@@ -158,25 +144,3 @@ function createComponentName(){
 	var componentName = 'Prototype_Component' + randomInt;
 	return componentName;
 }
-
-// function createFiddleBadgeComponent(bundleId){
-// 	fs.readFile('./fiddleBadge/fiddle_badge.cmp', 'utf8', function(err, contents){
-// 		if (err) { return console.error(err); }
-// 		var cmpContent = contents;
-// 	});
-
-// 	conn.tooling.sobject('AuraDefinition').create({
-// 		AuraDefinitionBundleId: bundleId,
-// 	    DefType: 'COMPONENT',
-// 	    Format: 'XML',
-// 	    Source: '<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes" access="global" ><aura:attribute name="label" type="String" default="Badge Label" /><aura:attribute name="class" type="String" /><lightning:layout horizontalAlign="space"><lightning:layoutItem flexibility="spread" padding="around-medium" class="wrap"><div class="container"><lightning:badge label="{!v.label}" class="{!v.class}">{!v.body}</lightning:badge></div></lightning:layoutItem><lightning:layoutItem flexibility="spread" padding="around-medium" class="wrap"><div class="control"><lightning:input name="label" value="{!v.label}" label="Label" /></div></lightning:layoutItem><lightning:layoutItem flexibility="spread" padding="around-medium" class="wrap"><div class="container">&lt;lightning:badge label=&quot;{!v.label}&quot; /&gt;</div></lightning:layoutItem></lightning:layout></aura:component>'
-// 	  }, function(err, res) {
-// 	  if (err) { return console.error(err); }
-// 	  console.log(res);
-// 	});
-// }
-
-// var conn = new jsforce.Connection({
-// 	instanceUrl : 'https://strike-cli-dev-ed.my.salesforce.com',
-// 	accessToken : '00D4100000121Oc!ASAAQMqOHLNKYRGjYMm9QPHMs6Jup7bdTVig7QIFthJezjMskT6MybH1ABke0EvhcZFW__c.CMg89bxVAPeRQGE6lEfUxR6z'
-// });
