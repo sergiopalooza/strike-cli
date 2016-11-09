@@ -111,28 +111,44 @@ function createComponent(bundleId, inputArgs){
 }
 
 function createComponentController(bundleId, inputArgs){
-	conn.tooling.sobject('AuraDefinition').create({
-		AuraDefinitionBundleId: bundleId,
-	    DefType: 'CONTROLLER',
-	    Format: 'JS',
-	    Source: '({\n\tmyAction : function(component, event, helper) {\n\t}\n})'
-	  }, function(err, res) {
-	  if (err) { return console.error(err); }
-	  console.log(inputArgs.name + ' Controller has been created');
-	  // console.log(res);
+	fs.readFile('./' + process.argv[2] + '/' + process.argv[2] + 'Controller.js', 'utf8', function(err, contents){
+		if(err){
+			console.log('Controller file not found. Falling back on default');
+			var controllerContent = '({\n\tmyAction : function(component, event, helper) {\n\t}\n})';
+		} else {
+			var controllerContent = contents;	
+		}
+
+		conn.tooling.sobject('AuraDefinition').create({
+			AuraDefinitionBundleId: bundleId,
+		    DefType: 'CONTROLLER',
+		    Format: 'JS',
+		    Source: controllerContent
+		  }, function(err, res) {
+		  if (err) { return console.error(err); }
+		  console.log(inputArgs.name + ' Controller has been created');
+		});
 	});
 }
 
 function createComponentHelper(bundleId, inputArgs){
-	conn.tooling.sobject('AuraDefinition').create({
-	AuraDefinitionBundleId: bundleId,
-	    DefType: 'HELPER',
-	    Format: 'JS',
-	    Source: '({\n\thelperMethod : function() {\n\t}\n})'
-	  }, function(err, res) {
-	  if (err) { return console.error(err); }
-	  console.log(inputArgs.name + ' Helper has been created');
-	  // console.log(res);
+	fs.readFile('./' + process.argv[2] + '/' + process.argv[2] + 'Helper.js', 'utf8', function(err, contents){
+		if(err){
+			console.log('Helper file not found. Falling back on default');
+			var helperContent = '({\n\thelperMethod : function() {\n\t}\n})';
+		} else {
+			var helperContent = contents;
+		}
+
+		conn.tooling.sobject('AuraDefinition').create({
+		AuraDefinitionBundleId: bundleId,
+		    DefType: 'HELPER',
+		    Format: 'JS',
+		    Source: helperContent
+		  }, function(err, res) {
+		  if (err) { return console.error(err); }
+		  console.log(inputArgs.name + ' Helper has been created');
+		});
 	});
 }
 
