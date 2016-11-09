@@ -25,13 +25,13 @@ prompt.get(promptSchema, function (err, res){
 	var username = res.username || process.env.SF_STRIKE_USERNAME;
 	var password = res.password || process.env.SF_STRIKE_PASSWORD;
 	
-	var componentInfo = {};
-	componentInfo.name = res.inputComponentName || createComponentName();
-	componentInfo.description = res.inputDescription || 'I was created from Strike-CLI';
+	var inputArgs = {};
+	inputArgs.name = res.inputComponentName || generateRandomComponentName();
+	inputArgs.description = res.inputDescription || 'I was created from Strike-CLI';
 
 	conn.login(username, password, function(err, res) {
 		if (err) { return console.error(err); }
-		createAuraDefinitionBundle(componentInfo);
+		createAuraDefinitionBundle(inputArgs);
 	});
 });
 
@@ -57,22 +57,22 @@ function configurePromptSchema(){
 	return promptSchema;
 }
 
-function createAuraDefinitionBundle(componentInfo){
+function createAuraDefinitionBundle(inputArgs){
 	conn.tooling.sobject('AuraDefinitionBundle').create({
-		Description: componentInfo.description, // my description
-	  	DeveloperName: componentInfo.name,
-	  	MasterLabel: componentInfo.name, 
+		Description: inputArgs.description, // my description
+	  	DeveloperName: inputArgs.name,
+	  	MasterLabel: inputArgs.name, 
 	  	ApiVersion:'32.0'
 	}, 	function(err, res){
 		if (err) { return console.error(err); }
-		console.log(componentInfo.name + ' bundle has been created');
-		console.log(res);
+		console.log(inputArgs.name + ' Bundle has been created');
+		// console.log(res);
 
 		var bundleId = res.id;
 
-		createComponent(bundleId);
-		createComponentController(bundleId);
-		createComponentHelper(bundleId);
+		createComponent(bundleId, inputArgs);
+		createComponentController(bundleId, inputArgs);
+		createComponentHelper(bundleId, inputArgs);
 	});
 }
 
@@ -88,7 +88,7 @@ function createApplication(bundleId){
 	});
 }
 
-function createComponent(bundleId){
+function createComponent(bundleId, inputArgs){
 	fs.readFile('./' + process.argv[2] + '/' + process.argv[2] + '.cmp', 'utf8', function(err, contents){
 		if(err){
 			console.log('CMP file not found. Falling back on default');
@@ -104,12 +104,13 @@ function createComponent(bundleId){
 		    Source: cmpContent
 		  }, function(err, res) {
 		  if (err) { return console.error(err); }
-		  console.log(res);
+		  console.log(inputArgs.name + ' CMP has been created');
+		  // console.log(res);
 		});
 	});
 }
 
-function createComponentController(bundleId){
+function createComponentController(bundleId, inputArgs){
 	conn.tooling.sobject('AuraDefinition').create({
 		AuraDefinitionBundleId: bundleId,
 	    DefType: 'CONTROLLER',
@@ -117,11 +118,12 @@ function createComponentController(bundleId){
 	    Source: '({\n\tmyAction : function(component, event, helper) {\n\t}\n})'
 	  }, function(err, res) {
 	  if (err) { return console.error(err); }
-	  console.log(res);
+	  console.log(inputArgs.name + ' Controller has been created');
+	  // console.log(res);
 	});
 }
 
-function createComponentHelper(bundleId){
+function createComponentHelper(bundleId, inputArgs){
 	conn.tooling.sobject('AuraDefinition').create({
 	AuraDefinitionBundleId: bundleId,
 	    DefType: 'HELPER',
@@ -129,11 +131,12 @@ function createComponentHelper(bundleId){
 	    Source: '({\n\thelperMethod : function() {\n\t}\n})'
 	  }, function(err, res) {
 	  if (err) { return console.error(err); }
-	  console.log(res);
+	  console.log(inputArgs.name + ' Helper has been created');
+	  // console.log(res);
 	});
 }
 
-function createComponentName(){
+function generateRandomComponentName(){
 	var date = new Date();
 	var dateComponents = [
 	    date.getSeconds(),
