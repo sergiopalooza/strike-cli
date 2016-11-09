@@ -13,6 +13,8 @@ console.log(
   )
 );
 
+
+
 var conn = new jsforce.Connection();
 var promptSchema = configurePromptSchema();
 
@@ -105,14 +107,19 @@ function createComponent(bundleId){
 }
 
 function createFiddleBadgeComponent(bundleId){
-	conn.tooling.sobject('AuraDefinition').create({
-		AuraDefinitionBundleId: bundleId,
-	    DefType: 'COMPONENT',
-	    Format: 'XML',
-	    Source: '<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes" access="global" ><aura:attribute name="label" type="String" default="Badge Label" /><aura:attribute name="class" type="String" /><lightning:layout horizontalAlign="space"><lightning:layoutItem flexibility="spread" padding="around-medium" class="wrap"><div class="container"><lightning:badge label="{!v.label}" class="{!v.class}">{!v.body}</lightning:badge></div></lightning:layoutItem><lightning:layoutItem flexibility="spread" padding="around-medium" class="wrap"><div class="control"><lightning:input name="label" value="{!v.label}" label="Label" /></div></lightning:layoutItem><lightning:layoutItem flexibility="spread" padding="around-medium" class="wrap"><div class="container">&lt;lightning:badge label=&quot;{!v.label}&quot; /&gt;</div></lightning:layoutItem></lightning:layout></aura:component>'
-	  }, function(err, res) {
-	  if (err) { return console.error(err); }
-	  console.log(res);
+	fs.readFile('./fiddleBadge/fiddle_badge.cmp', 'utf8', function(err, contents){
+		if (err) { return console.error(err); }
+		var cmpContent = contents;
+
+		conn.tooling.sobject('AuraDefinition').create({
+			AuraDefinitionBundleId: bundleId,
+		    DefType: 'COMPONENT',
+		    Format: 'XML',
+		    Source: cmpContent
+		  }, function(err, res) {
+		  if (err) { return console.error(err); }
+		  console.log(res);
+		});
 	});
 }
 
@@ -151,6 +158,23 @@ function createComponentName(){
 	var componentName = 'Prototype_Component' + randomInt;
 	return componentName;
 }
+
+// function createFiddleBadgeComponent(bundleId){
+// 	fs.readFile('./fiddleBadge/fiddle_badge.cmp', 'utf8', function(err, contents){
+// 		if (err) { return console.error(err); }
+// 		var cmpContent = contents;
+// 	});
+
+// 	conn.tooling.sobject('AuraDefinition').create({
+// 		AuraDefinitionBundleId: bundleId,
+// 	    DefType: 'COMPONENT',
+// 	    Format: 'XML',
+// 	    Source: '<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes" access="global" ><aura:attribute name="label" type="String" default="Badge Label" /><aura:attribute name="class" type="String" /><lightning:layout horizontalAlign="space"><lightning:layoutItem flexibility="spread" padding="around-medium" class="wrap"><div class="container"><lightning:badge label="{!v.label}" class="{!v.class}">{!v.body}</lightning:badge></div></lightning:layoutItem><lightning:layoutItem flexibility="spread" padding="around-medium" class="wrap"><div class="control"><lightning:input name="label" value="{!v.label}" label="Label" /></div></lightning:layoutItem><lightning:layoutItem flexibility="spread" padding="around-medium" class="wrap"><div class="container">&lt;lightning:badge label=&quot;{!v.label}&quot; /&gt;</div></lightning:layoutItem></lightning:layout></aura:component>'
+// 	  }, function(err, res) {
+// 	  if (err) { return console.error(err); }
+// 	  console.log(res);
+// 	});
+// }
 
 // var conn = new jsforce.Connection({
 // 	instanceUrl : 'https://strike-cli-dev-ed.my.salesforce.com',
