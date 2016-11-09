@@ -1,5 +1,5 @@
 <aura:component implements="force:appHostable,flexipage:availableForAllPageTypes" access="global" >
-    <aura:attribute name="label" type="String" default="SERGIO Label" />
+    <aura:attribute name="label" type="String" default="Label" />
     <aura:attribute name="class" type="String" />
 
     <lightning:layout horizontalAlign="space">
