@@ -1,2 +1,2 @@
 # proto-strike-cli
-Sergio smells
+Sergio smells *good*
