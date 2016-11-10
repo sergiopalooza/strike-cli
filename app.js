@@ -26,18 +26,6 @@ prompt.get(promptSchema, function (err, res){
 	});
 });
 
-function mkdir(dir, mode){
-   try{
-       fs.mkdirSync(dir, mode);
-   }
-   catch(e){
-       if(e.errno === 34){
-           this._mkdir(path.dirname(dir), mode);
-           this._mkdir(dir, mode);
-       }
-   }
-}
-
 function drawScreen(){
 	clear();
 	console.log(
