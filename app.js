@@ -6,12 +6,13 @@ var chalk = require('chalk');
 var figlet = require('figlet');
 var clear = require('clear');
 
-drawScreen();
-
 var conn = new jsforce.Connection();
 var promptSchema = configurePromptSchema();
 
+drawScreen();
+
 prompt.start();
+
 prompt.get(promptSchema, function (err, res){
 	var username = res.username || process.env.SF_STRIKE_USERNAME;
 	var password = res.password || process.env.SF_STRIKE_PASSWORD;
@@ -89,7 +90,7 @@ function createApplication(bundleId){
 }
 
 function createComponent(bundleId, inputArgs){
-		fs.readFile('/usr/local/lib/node_modules/proto-strike-cli/' + process.argv[2] + '/' + process.argv[2] + '.cmp', 'utf8', function(err, contents){
+	fs.readFile('/usr/local/lib/node_modules/proto-strike-cli/' + process.argv[2] + '/' + process.argv[2] + '.cmp', 'utf8', function(err, contents){
 		if(err){
 			console.log('CMP file not found. Falling back on default');
 			var cmpContent = '<aura:component></aura:component>';
