@@ -6,12 +6,7 @@ var chalk = require('chalk');
 var figlet = require('figlet');
 var clear = require('clear');
 
-clear();
-console.log(
-  chalk.cyan(
-    figlet.textSync('Strike-CLI', { horizontalLayout: 'full' })
-  )
-);
+drawScreen();
 
 var conn = new jsforce.Connection();
 var promptSchema = configurePromptSchema();
@@ -30,6 +25,27 @@ prompt.get(promptSchema, function (err, res){
 		createAuraDefinitionBundle(inputArgs);
 	});
 });
+
+function mkdir(dir, mode){
+   try{
+       fs.mkdirSync(dir, mode);
+   }
+   catch(e){
+       if(e.errno === 34){
+           this._mkdir(path.dirname(dir), mode);
+           this._mkdir(dir, mode);
+       }
+   }
+}
+
+function drawScreen(){
+	clear();
+	console.log(
+	  chalk.cyan(
+	    figlet.textSync('Strike-CLI', { horizontalLayout: 'full' })
+	  )
+	);
+}
 
 function configurePromptSchema(){
 	prompt.message = 'Strike-CLI';
@@ -85,7 +101,7 @@ function createApplication(bundleId){
 }
 
 function createComponent(bundleId, inputArgs){
-	fs.readFile('./' + process.argv[2] + '/' + process.argv[2] + '.cmp', 'utf8', function(err, contents){
+		fs.readFile('/usr/local/lib/node_modules/proto-strike-cli/' + process.argv[2] + '/' + process.argv[2] + '.cmp', 'utf8', function(err, contents){
 		if(err){
 			console.log('CMP file not found. Falling back on default');
 			var cmpContent = '<aura:component></aura:component>';
