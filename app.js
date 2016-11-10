@@ -13,12 +13,8 @@ console.log(
   )
 );
 
-
-
 var conn = new jsforce.Connection();
 var promptSchema = configurePromptSchema();
-
-
 
 prompt.start();
 prompt.get(promptSchema, function (err, res){
