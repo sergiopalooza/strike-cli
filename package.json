@@ -1,6 +1,6 @@
 {
-  "name": "strike-cli",
-  "version": "1.0.0",
+  "name": "proto-strike-cli",
+  "version": "0.1.0",
   "description": "Prototype for Strike-CLI",
   "main": "app.js",
   "scripts": {
@@ -19,10 +19,5 @@
     "jsforce": "^1.7.1",
     "preferences": "^0.2.1",
     "prompt": "^1.0.0"
-  },
-  "devDependencies": {
-    "chalk": "^1.1.3",
-    "clear": "0.0.1",
-    "figlet": "^1.2.0"
   }
 }
