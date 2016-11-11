@@ -17,13 +17,7 @@ drawScreen();
 createStrikeComponentFolder();
 
 downloadTargetComponents(targetComponents);
-
 	
-// });
-/*TODO
-If the contests is 404: Not Found, then dont create the file
-*/
-
 prompt.start();
 
 prompt.get(promptSchema, function (err, res){
@@ -77,7 +71,19 @@ function downloadComponentFile(component, fileType){
 
 	var file = fs.createWriteStream(__dirname + "/strike-components/" + component + "/" + component + fileTypeMap[fileType]);
 	var request = http.get('https://raw.githubusercontent.com/appiphony/Strike-Components/master/' + component + '/' + component + fileTypeMap[fileType], function(response) {
-	  response.pipe(file);
+		var body = '';
+		
+		response.on('data', function(d){
+			body += d;
+		});
+
+		response.on('end', function(){
+			if(body == '404: Not Found\n'){
+				//if we find out later that the file is actually a 404, we go and delete the file since it wont save to Salesforce
+				fs.unlinkSync(__dirname + "/strike-components/" + component + "/" + component + fileTypeMap[fileType]);
+			}		
+		});
+		response.pipe(file);
 	});
 }
 
