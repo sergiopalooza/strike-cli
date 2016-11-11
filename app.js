@@ -10,13 +10,14 @@ var clear = require('clear');
 var conn = new jsforce.Connection();
 var promptSchema = configurePromptSchema();
 
-var targetComponents = ['strike_badge'];
+var REPO_BASE_URL = "https://raw.githubusercontent.com/appiphony/Strike-Components/master";
+var TARGET_COMPONENTS = ['strike_badge'];
 
 drawScreen();
 
 createStrikeComponentFolder();
 
-downloadTargetComponents(targetComponents);
+downloadTargetComponents(TARGET_COMPONENTS);
 	
 prompt.start();
 
@@ -70,7 +71,7 @@ function downloadComponentFile(component, fileType){
 	};
 
 	var file = fs.createWriteStream(__dirname + "/strike-components/" + component + "/" + component + fileTypeMap[fileType]);
-	var request = http.get('https://raw.githubusercontent.com/appiphony/Strike-Components/master/' + component + '/' + component + fileTypeMap[fileType], function(response) {
+	var request = http.get(REPO_BASE_URL + "/" + component + "/" + component + fileTypeMap[fileType], function(response) {
 		var body = '';
 		
 		response.on('data', function(d){
