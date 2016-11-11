@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 var fs = require('fs');
+var http = require('https');
 var prompt = require('prompt');
 var jsforce = require('jsforce');
 var chalk = require('chalk');
@@ -9,7 +10,58 @@ var clear = require('clear');
 var conn = new jsforce.Connection();
 var promptSchema = configurePromptSchema();
 
+var targetedComponents = ['strike_badge'];
+
 drawScreen();
+
+console.log("Usage: " + __dirname + " path/to/directory");
+
+deleteFolderRecursive = function(path) {
+    var files = [];
+    if( fs.existsSync(path) ) {
+        files = fs.readdirSync(path);
+        files.forEach(function(file,index){
+            var curPath = path + "/" + file;
+            if(fs.lstatSync(curPath).isDirectory()) { // recurse
+                deleteFolderRecursive(curPath);
+            } else { // delete file
+                fs.unlinkSync(curPath);
+            }
+        });
+        fs.rmdirSync(path);
+    }
+};
+
+deleteFolderRecursive(__dirname + "/strike-components");
+
+fs.existsSync(__dirname + "/strike-components") || fs.mkdirSync(__dirname + "/strike-components");
+
+targetedComponents.forEach(function(component){
+	fs.mkdirSync(__dirname + "/strike-components/" + component);
+
+	var cmpFile = fs.createWriteStream(__dirname + "/strike-components/" + component + "/" + component + ".cmp");
+	var request = http.get('https://raw.githubusercontent.com/appiphony/Strike-Components/master/' + component + '/' + component + '.cmp', function(response) {
+	  response.pipe(cmpFile);
+	});
+
+	var controllerFile = fs.createWriteStream(__dirname + "/strike-components/" + component + "/" + component + "Controller.js");
+	var request = http.get('https://raw.githubusercontent.com/appiphony/Strike-Components/master/' + component + '/' + component + 'Controller.js', function(response) {
+	  response.pipe(controllerFile);
+	});
+
+	var helperFile = fs.createWriteStream(__dirname + "/strike-components/" + component + "/" + component + "Helper.js");
+	var request = http.get('https://raw.githubusercontent.com/appiphony/Strike-Components/master/' + component + '/' + component + 'Helper.js', function(response) {
+	  response.pipe(helperFile);
+	});
+
+
+});
+	
+// });
+/*TODO
+Change source for files to a 'strike' component folder
+If the contests is 404: Not Found, then dont create the file
+*/
 
 prompt.start();
 
@@ -90,7 +142,8 @@ function createApplication(bundleId){
 }
 
 function createComponent(bundleId, inputArgs){
-	fs.readFile('/usr/local/lib/node_modules/proto-strike-cli/' + process.argv[2] + '/' + process.argv[2] + '.cmp', 'utf8', function(err, contents){
+	console.log(__dirname + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + '.cmp');
+	fs.readFile(__dirname + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + '.cmp', 'utf8', function(err, contents){
 		if(err){
 			console.log('CMP file not found. Falling back on default');
 			var cmpContent = '<aura:component></aura:component>';
@@ -112,7 +165,7 @@ function createComponent(bundleId, inputArgs){
 }
 
 function createComponentController(bundleId, inputArgs){
-	fs.readFile('./' + process.argv[2] + '/' + process.argv[2] + 'Controller.js', 'utf8', function(err, contents){
+	fs.readFile(__dirname + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + 'Controller.js', 'utf8', function(err, contents){
 		if(err){
 			console.log('Controller file not found. Falling back on default');
 			var controllerContent = '({\n\tmyAction : function(component, event, helper) {\n\t}\n})';
@@ -133,7 +186,7 @@ function createComponentController(bundleId, inputArgs){
 }
 
 function createComponentHelper(bundleId, inputArgs){
-	fs.readFile('./' + process.argv[2] + '/' + process.argv[2] + 'Helper.js', 'utf8', function(err, contents){
+	fs.readFile(__dirname + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + 'Helper.js', 'utf8', function(err, contents){
 		if(err){
 			console.log('Helper file not found. Falling back on default');
 			var helperContent = '({\n\thelperMethod : function() {\n\t}\n})';
