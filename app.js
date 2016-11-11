@@ -10,56 +10,17 @@ var clear = require('clear');
 var conn = new jsforce.Connection();
 var promptSchema = configurePromptSchema();
 
-var targetedComponents = ['strike_badge'];
+var targetComponents = ['strike_badge'];
 
 drawScreen();
 
-console.log("Usage: " + __dirname + " path/to/directory");
+createStrikeComponentFolder();
 
-deleteFolderRecursive = function(path) {
-    var files = [];
-    if( fs.existsSync(path) ) {
-        files = fs.readdirSync(path);
-        files.forEach(function(file,index){
-            var curPath = path + "/" + file;
-            if(fs.lstatSync(curPath).isDirectory()) { // recurse
-                deleteFolderRecursive(curPath);
-            } else { // delete file
-                fs.unlinkSync(curPath);
-            }
-        });
-        fs.rmdirSync(path);
-    }
-};
+downloadTargetComponents(targetComponents);
 
-deleteFolderRecursive(__dirname + "/strike-components");
-
-fs.existsSync(__dirname + "/strike-components") || fs.mkdirSync(__dirname + "/strike-components");
-
-targetedComponents.forEach(function(component){
-	fs.mkdirSync(__dirname + "/strike-components/" + component);
-
-	var cmpFile = fs.createWriteStream(__dirname + "/strike-components/" + component + "/" + component + ".cmp");
-	var request = http.get('https://raw.githubusercontent.com/appiphony/Strike-Components/master/' + component + '/' + component + '.cmp', function(response) {
-	  response.pipe(cmpFile);
-	});
-
-	var controllerFile = fs.createWriteStream(__dirname + "/strike-components/" + component + "/" + component + "Controller.js");
-	var request = http.get('https://raw.githubusercontent.com/appiphony/Strike-Components/master/' + component + '/' + component + 'Controller.js', function(response) {
-	  response.pipe(controllerFile);
-	});
-
-	var helperFile = fs.createWriteStream(__dirname + "/strike-components/" + component + "/" + component + "Helper.js");
-	var request = http.get('https://raw.githubusercontent.com/appiphony/Strike-Components/master/' + component + '/' + component + 'Helper.js', function(response) {
-	  response.pipe(helperFile);
-	});
-
-
-});
 	
 // });
 /*TODO
-Change source for files to a 'strike' component folder
 If the contests is 404: Not Found, then dont create the file
 */
 
@@ -87,6 +48,54 @@ function drawScreen(){
 	  )
 	);
 }
+
+function createStrikeComponentFolder(){
+	deleteFolderRecursive(__dirname + "/strike-components"); //uncomment if you want to create the folder everytime
+	fs.existsSync(__dirname + "/strike-components") || fs.mkdirSync(__dirname + "/strike-components");	
+}
+
+function downloadTargetComponents(targetComponents){
+	targetComponents.forEach(function(component){
+		downloadComponentBundle(component);
+	});
+}
+
+function downloadComponentBundle(component){
+	fs.mkdirSync(__dirname + "/strike-components/" + component);
+	
+	downloadComponentFile(component, 'component');
+	downloadComponentFile(component, 'controller');
+	downloadComponentFile(component, 'helper');
+}
+
+function downloadComponentFile(component, fileType){
+	var fileTypeMap = {
+		component: '.cmp',
+		controller: 'Controller.js',
+		helper: 'Helper.js'
+	};
+
+	var file = fs.createWriteStream(__dirname + "/strike-components/" + component + "/" + component + fileTypeMap[fileType]);
+	var request = http.get('https://raw.githubusercontent.com/appiphony/Strike-Components/master/' + component + '/' + component + fileTypeMap[fileType], function(response) {
+	  response.pipe(file);
+	});
+}
+
+function deleteFolderRecursive(path) {
+    var files = [];
+    if( fs.existsSync(path) ) {
+        files = fs.readdirSync(path);
+        files.forEach(function(file,index){
+            var curPath = path + "/" + file;
+            if(fs.lstatSync(curPath).isDirectory()) { // recurse
+                deleteFolderRecursive(curPath);
+            } else { // delete file
+                fs.unlinkSync(curPath);
+            }
+        });
+        fs.rmdirSync(path);
+    }
+};
 
 function configurePromptSchema(){
 	prompt.message = 'Strike-CLI';
@@ -142,7 +151,6 @@ function createApplication(bundleId){
 }
 
 function createComponent(bundleId, inputArgs){
-	console.log(__dirname + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + '.cmp');
 	fs.readFile(__dirname + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + '.cmp', 'utf8', function(err, contents){
 		if(err){
 			console.log('CMP file not found. Falling back on default');
@@ -159,7 +167,6 @@ function createComponent(bundleId, inputArgs){
 		  }, function(err, res) {
 		  if (err) { return console.error(err); }
 		  console.log(inputArgs.name + ' CMP has been created');
-		  // console.log(res);
 		});
 	});
 }
