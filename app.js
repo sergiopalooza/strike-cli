@@ -20,7 +20,7 @@ if(downloadFlagExists()){
 	downloadTargetComponents(TARGET_COMPONENTS);
 } else {
 	if(!doesComponentFolderExist()){
-		console.log("WARNING: COMPONENT FOLDER NOT FOUND. TRY 'sudo strike -download' TO DOWNLOAD COMPONENTS");
+		console.error(chalk.yellow("WARNING: COMPONENT FOLDER NOT FOUND. TRY 'sudo strike -download' TO DOWNLOAD COMPONENTS"));
 	}
 	getUserInput();
 }
@@ -65,7 +65,7 @@ function getUserInput(){
 		inputArgs.description = res.inputDescription || 'I was created from Strike-CLI';
 
 		conn.login(username, password, function(err, res) {
-			if (err) { return console.error(err); }
+			if (err) { return console.error(chalk.red(err)); }
 			createAuraDefinitionBundle(inputArgs);
 		});
 	});
