@@ -11,7 +11,7 @@ var conn = new jsforce.Connection();
 var promptSchema = configurePromptSchema();
 
 var REPO_BASE_URL = "https://raw.githubusercontent.com/appiphony/Strike-Components/master";
-var TARGET_COMPONENTS = ['strike_badge'];
+var TARGET_COMPONENTS = ['strike_badge']; //See if we can find a way to iterate through the Github folder to avoid this
 
 drawScreen();
 
@@ -25,11 +25,6 @@ if(downloadFlagExists()){
 	getUserInput();
 }
 
-
-function downloadFlagExists() {
-	return process.argv[2] == '-download' || process.argv[2] == '-d';
-}
-
 function drawScreen(){
 	clear();
 	console.log(
@@ -39,6 +34,9 @@ function drawScreen(){
 	);
 }
 
+function downloadFlagExists() {
+	return process.argv[2] == '-download' || process.argv[2] == '-d';
+}
 
 function createStrikeComponentFolder(){
 	deleteFolderRecursive(__dirname + "/strike-components"); //uncomment if you want to create the folder everytime
