@@ -15,11 +15,20 @@ var TARGET_COMPONENTS = ['strike_badge'];
 
 drawScreen();
 
-createStrikeComponentFolder();
+if(downloadFlagExists()){
+	createStrikeComponentFolder();
+	downloadTargetComponents(TARGET_COMPONENTS);
+} else {
+	if(!doesComponentFolderExist()){
+		console.log("WARNING: COMPONENT FOLDER NOT FOUND. TRY 'sudo strike -download' TO DOWNLOAD COMPONENTS");
+	}
+	getUserInput();
+}
 
-downloadTargetComponents(TARGET_COMPONENTS);
 
-getUserInput();
+function downloadFlagExists() {
+	return process.argv[2] == '-download' || process.argv[2] == '-d';
+}
 
 function drawScreen(){
 	clear();
@@ -30,9 +39,21 @@ function drawScreen(){
 	);
 }
 
+
 function createStrikeComponentFolder(){
 	deleteFolderRecursive(__dirname + "/strike-components"); //uncomment if you want to create the folder everytime
 	fs.existsSync(__dirname + "/strike-components") || fs.mkdirSync(__dirname + "/strike-components");	
+}
+
+function downloadTargetComponents(targetComponents){
+	targetComponents.forEach(function(component){
+		downloadComponentBundle(component);
+	});
+}
+
+function doesComponentFolderExist(){
+
+	return fs.existsSync(__dirname + "/strike-components"); 
 }
 
 function getUserInput(){
@@ -49,12 +70,6 @@ function getUserInput(){
 			if (err) { return console.error(err); }
 			createAuraDefinitionBundle(inputArgs);
 		});
-	});
-}
-
-function downloadTargetComponents(targetComponents){
-	targetComponents.forEach(function(component){
-		downloadComponentBundle(component);
 	});
 }
 
