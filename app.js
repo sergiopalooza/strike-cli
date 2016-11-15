@@ -18,22 +18,8 @@ drawScreen();
 createStrikeComponentFolder();
 
 downloadTargetComponents(TARGET_COMPONENTS);
-	
-prompt.start();
 
-prompt.get(promptSchema, function (err, res){
-	var username = res.username || process.env.SF_STRIKE_USERNAME;
-	var password = res.password || process.env.SF_STRIKE_PASSWORD;
-	
-	var inputArgs = {};
-	inputArgs.name = res.inputComponentName || generateRandomComponentName();
-	inputArgs.description = res.inputDescription || 'I was created from Strike-CLI';
-
-	conn.login(username, password, function(err, res) {
-		if (err) { return console.error(err); }
-		createAuraDefinitionBundle(inputArgs);
-	});
-});
+getUserInput();
 
 function drawScreen(){
 	clear();
@@ -47,6 +33,23 @@ function drawScreen(){
 function createStrikeComponentFolder(){
 	deleteFolderRecursive(__dirname + "/strike-components"); //uncomment if you want to create the folder everytime
 	fs.existsSync(__dirname + "/strike-components") || fs.mkdirSync(__dirname + "/strike-components");	
+}
+
+function getUserInput(){
+	prompt.start();
+	prompt.get(promptSchema, function (err, res){
+		var username = res.username || process.env.SF_STRIKE_USERNAME;
+		var password = res.password || process.env.SF_STRIKE_PASSWORD;
+		
+		var inputArgs = {};
+		inputArgs.name = res.inputComponentName || generateRandomComponentName();
+		inputArgs.description = res.inputDescription || 'I was created from Strike-CLI';
+
+		conn.login(username, password, function(err, res) {
+			if (err) { return console.error(err); }
+			createAuraDefinitionBundle(inputArgs);
+		});
+	});
 }
 
 function downloadTargetComponents(targetComponents){
@@ -102,7 +105,7 @@ function deleteFolderRecursive(path) {
         });
         fs.rmdirSync(path);
     }
-};
+}
 
 function configurePromptSchema(){
 	prompt.message = 'Strike-CLI';
@@ -142,6 +145,7 @@ function createAuraDefinitionBundle(inputArgs){
 		createComponent(bundleId, inputArgs);
 		createComponentController(bundleId, inputArgs);
 		createComponentHelper(bundleId, inputArgs);
+		console.log('creation is finished');
 	});
 }
 
