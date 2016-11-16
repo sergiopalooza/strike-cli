@@ -10,7 +10,7 @@ var clear = require('clear');
 var conn = new jsforce.Connection();
 var promptSchema = configurePromptSchema();
 
-var REPO_BASE_URL = "https://raw.githubusercontent.com/appiphony/Strike-Components/master";
+var REPO_BASE_URL = "https://raw.githubusercontent.com/appiphony/Strike-Components/master/components";
 var TARGET_COMPONENTS = ['strike_badge']; //See if we can find a way to iterate through the Github folder to avoid this
 
 drawScreen();
