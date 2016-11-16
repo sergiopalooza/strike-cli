@@ -79,6 +79,7 @@ function doesComponentFolderExist(){
 function getUserInput(){
 	prompt.start();
 	prompt.get(promptSchema, function (err, res){
+		if (err) { return console.error(chalk.red(err)); }
 		var userInput = {
 			username: res.username || process.env.SF_STRIKE_USERNAME,
 			password: res.password || process.env.SF_STRIKE_PASSWORD,
