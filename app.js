@@ -158,7 +158,6 @@ function createAuraDefinitionBundle(inputArgs){
 		createComponent(bundleId, inputArgs);
 		createComponentController(bundleId, inputArgs);
 		createComponentHelper(bundleId, inputArgs);
-		console.log('creation is finished');
 	});
 }
 
