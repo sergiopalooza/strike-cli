@@ -25,6 +25,28 @@ if(downloadFlagExists()){
 	getUserInput();
 }
 
+function configurePromptSchema(){
+	prompt.message = 'Strike-CLI';
+	var promptSchema = {
+		properties: {
+			username: {
+				description: 'Username'
+			},
+			password: {
+				description: 'Password',
+				hidden: true
+			},
+			// inputComponentName: {
+			// 	description: 'Component Name'
+			// },
+			inputDescription: {
+				description: 'Description'
+			}
+		}
+	};
+	return promptSchema;
+}
+
 function drawScreen(){
 	clear();
 	console.log(
@@ -57,16 +79,41 @@ function doesComponentFolderExist(){
 function getUserInput(){
 	prompt.start();
 	prompt.get(promptSchema, function (err, res){
-		var username = res.username || process.env.SF_STRIKE_USERNAME;
-		var password = res.password || process.env.SF_STRIKE_PASSWORD;
-		
-		var inputArgs = {};
-		inputArgs.name = res.inputComponentName || generateRandomComponentName();
-		inputArgs.description = res.inputDescription || 'I was created from Strike-CLI';
+		var userInput = {
+			username: res.username || process.env.SF_STRIKE_USERNAME,
+			password: res.password || process.env.SF_STRIKE_PASSWORD,
+			bundleInfo: {
+				name: process.argv[2],
+				// name: res.inputComponentName || generateRandomComponentName(),
+				description: res.inputDescription || 'I was created from Strike-CLI'
+			}
+		};
 
-		conn.login(username, password, function(err, res) {
+		conn.login(userInput.username, userInput.password, function(err, res) {
 			if (err) { return console.error(chalk.red(err)); }
-			createAuraDefinitionBundle(inputArgs);
+			//checking if a Aura Definition Bundle already exists with the same name as the argument
+			conn.tooling.query("Select Id, DeveloperName FROM AuraDefinitionBundle WHERE DeveloperName ='" + process.argv[2] + "'", function(err, res){
+				if (err) { return console.error(chalk.red(err)); }
+				if(res.records.length > 0){
+					var bundleId = res.records[0].Id;
+					
+					conn.tooling.query("Select Id, AuraDefinitionBundleId, DefType FROM AuraDefinition WHERE AuraDefinitionBundleId ='" + bundleId + "'" + "AND DefType ='COMPONENT'", function(err, res){
+						updateComponentCMP(res.records[0].Id);
+					});
+
+					conn.tooling.query("Select Id, AuraDefinitionBundleId, DefType FROM AuraDefinition WHERE AuraDefinitionBundleId ='" + bundleId + "'" + "AND DefType ='CONTROLLER'", function(err, res){
+						updateComponentController(res.records[0].Id);
+					});
+
+					conn.tooling.query("Select Id, AuraDefinitionBundleId, DefType FROM AuraDefinition WHERE AuraDefinitionBundleId ='" + bundleId + "'" + "AND DefType ='HELPER'", function(err, res){
+						updateComponentHelper(res.records[0].Id);
+					});
+	
+				} else { //No bundle was found with the same Developer Name
+					createAuraDefinitionBundle(userInput.bundleInfo);
+				}
+
+			});
 		});
 	});
 }
@@ -120,28 +167,6 @@ function deleteFolderRecursive(path) {
     }
 }
 
-function configurePromptSchema(){
-	prompt.message = 'Strike-CLI';
-	var promptSchema = {
-		properties: {
-			username: {
-				description: 'Username'
-			},
-			password: {
-				description: 'Password',
-				hidden: true
-			},
-			inputComponentName: {
-				description: 'Component Name'
-			},
-			inputDescription: {
-				description: 'Description'
-			}
-		}
-	};
-	return promptSchema;
-}
-
 function createAuraDefinitionBundle(inputArgs){
 	conn.tooling.sobject('AuraDefinitionBundle').create({
 		Description: inputArgs.description, // my description
@@ -149,13 +174,16 @@ function createAuraDefinitionBundle(inputArgs){
 	  	MasterLabel: inputArgs.name, 
 	  	ApiVersion:'32.0'
 	}, 	function(err, res){
-		if (err) { return console.error(err); }
+		if (err) { 
+
+			return console.error(err); 
+		}
 		console.log(inputArgs.name + ' Bundle has been created');
 		// console.log(res);
 
 		var bundleId = res.id;
 
-		createComponent(bundleId, inputArgs);
+		createComponentCMP(bundleId, inputArgs);
 		createComponentController(bundleId, inputArgs);
 		createComponentHelper(bundleId, inputArgs);
 	});
@@ -173,7 +201,7 @@ function createApplication(bundleId){
 	});
 }
 
-function createComponent(bundleId, inputArgs){
+function createComponentCMP(bundleId, inputArgs){
 	fs.readFile(__dirname + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + '.cmp', 'utf8', function(err, contents){
 		if(err){
 			console.log('CMP file not found. Falling back on default');
@@ -190,6 +218,25 @@ function createComponent(bundleId, inputArgs){
 		  }, function(err, res) {
 		  if (err) { return console.error(err); }
 		  console.log(inputArgs.name + ' CMP has been created');
+		});
+	});
+}
+
+function updateComponentCMP(cmpId){
+	fs.readFile(__dirname + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + '.cmp', 'utf8', function(err, contents){
+		if(err){
+			console.log('CMP file not found. Falling back on default');
+			var cmpContent = '<aura:component></aura:component>';
+		} else {
+			var cmpContent = contents;	
+		}
+		
+		conn.tooling.sobject('AuraDefinition').update({
+			Id: cmpId,
+			Source: cmpContent
+		  }, function(err, res) {
+		  if (err) { return console.error(err); }
+		  console.log('CMP has been updated');
 		});
 	});
 }
@@ -215,6 +262,25 @@ function createComponentController(bundleId, inputArgs){
 	});
 }
 
+function updateComponentController(controllerId){
+	fs.readFile(__dirname + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + 'Controller.js', 'utf8', function(err, contents){
+		if(err){
+			console.log('Controller file not found. Falling back on default');
+			var controllerContent = '({\n\tmyAction : function(component, event, helper) {\n\t}\n})';
+		} else {
+			var controllerContent = contents;	
+		}
+
+		conn.tooling.sobject('AuraDefinition').update({
+			Id: controllerId,
+		    Source: controllerContent
+		  }, function(err, res) {
+		  if (err) { return console.error(err); }
+		  console.log('Controller has been updated');
+		});
+	});
+}
+
 function createComponentHelper(bundleId, inputArgs){
 	fs.readFile(__dirname + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + 'Helper.js', 'utf8', function(err, contents){
 		if(err){
@@ -232,6 +298,25 @@ function createComponentHelper(bundleId, inputArgs){
 		  }, function(err, res) {
 		  if (err) { return console.error(err); }
 		  console.log(inputArgs.name + ' Helper has been created');
+		});
+	});
+}
+
+function updateComponentHelper(helperId){
+	fs.readFile(__dirname + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + 'Helper.js', 'utf8', function(err, contents){
+		if(err){
+			console.log('Helper file not found. Falling back on default');
+			var helperContent = '({\n\thelperMethod : function() {\n\t}\n})';
+		} else {
+			var helperContent = contents;
+		}
+
+		conn.tooling.sobject('AuraDefinition').update({
+			Id: helperId,
+		    Source: helperContent
+		  }, function(err, res) {
+		  if (err) { return console.error(err); }
+		  console.log('Helper has been updated');
 		});
 	});
 }
