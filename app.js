@@ -35,13 +35,13 @@ function configurePromptSchema(){
 			password: {
 				description: 'Password',
 				hidden: true
-			},
+			}//,
 			// inputComponentName: {
 			// 	description: 'Component Name'
 			// },
-			inputDescription: {
-				description: 'Description'
-			}
+			// inputDescription: {
+			// 	description: 'Description'
+			// }
 		}
 	};
 	return promptSchema;
@@ -80,15 +80,17 @@ function getUserInput(){
 	prompt.start();
 	prompt.get(promptSchema, function (err, res){
 		if (err) { return console.error(chalk.red(err)); }
-		var userInput = {
-			username: res.username || process.env.SF_STRIKE_USERNAME,
-			password: res.password || process.env.SF_STRIKE_PASSWORD,
-			bundleInfo: {
-				name: process.argv[2],
-				// name: res.inputComponentName || generateRandomComponentName(),
-				description: res.inputDescription || 'I was created from Strike-CLI'
-			}
-		};
+		var userInput = createUserInputObj(res);
+		
+		// var userInput = {
+		// 	username: res.username || process.env.SF_STRIKE_USERNAME,
+		// 	password: res.password || process.env.SF_STRIKE_PASSWORD,
+		// 	bundleInfo: {
+		// 		name: process.argv[2],
+		// 		// name: res.inputComponentName || generateRandomComponentName(),
+		// 		description: res.inputDescription || 'I was created from Strike-CLI'
+		// 	}
+		// };
 
 		conn.login(userInput.username, userInput.password, function(err, res) {
 			if (err) { return console.error(chalk.red(err)); }
@@ -98,6 +100,8 @@ function getUserInput(){
 				if(res.records.length > 0){
 					var bundleId = res.records[0].Id;
 					
+
+					//How can I decouple the query and update of the component
 					conn.tooling.query("Select Id, AuraDefinitionBundleId, DefType FROM AuraDefinition WHERE AuraDefinitionBundleId ='" + bundleId + "'" + "AND DefType ='COMPONENT'", function(err, res){
 						updateComponentCMP(res.records[0].Id);
 					});
@@ -117,6 +121,19 @@ function getUserInput(){
 			});
 		});
 	});
+}
+
+function createUserInputObj(promptResponse){
+	var userInputObj = {
+		username: promptResponse.username || process.env.SF_STRIKE_USERNAME,
+		password: promptResponse.password || process.env.SF_STRIKE_PASSWORD,
+		bundleInfo: {
+			name: process.argv[2],
+			// name: promptResponse.inputComponentName || generateRandomComponentName(),
+			description: promptResponse.inputDescription || 'I was created from Strike-CLI'
+		}
+	};
+	return userInputObj;
 }
 
 function downloadComponentBundle(component){
