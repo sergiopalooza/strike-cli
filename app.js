@@ -11,7 +11,7 @@ var conn = new jsforce.Connection();
 var promptSchema = configurePromptSchema();
 
 var REPO_BASE_URL = "https://raw.githubusercontent.com/appiphony/Strike-Components/master/components";
-var TARGET_COMPONENTS = ['strike_badge']; //See if we can find a way to iterate through the Github folder to avoid this
+var TARGET_COMPONENTS = ['strike_badge', 'svg']; //See if we can find a way to iterate through the Github folder to avoid this
 
 drawScreen();
 
@@ -82,16 +82,6 @@ function getUserInput(){
 		if (err) { return console.error(chalk.red(err)); }
 		var userInput = createUserInputObj(res);
 		
-		// var userInput = {
-		// 	username: res.username || process.env.SF_STRIKE_USERNAME,
-		// 	password: res.password || process.env.SF_STRIKE_PASSWORD,
-		// 	bundleInfo: {
-		// 		name: process.argv[2],
-		// 		// name: res.inputComponentName || generateRandomComponentName(),
-		// 		description: res.inputDescription || 'I was created from Strike-CLI'
-		// 	}
-		// };
-
 		conn.login(userInput.username, userInput.password, function(err, res) {
 			if (err) { return console.error(chalk.red(err)); }
 			//checking if a Aura Definition Bundle already exists with the same name as the argument
@@ -142,13 +132,15 @@ function downloadComponentBundle(component){
 	downloadComponentFile(component, 'component');
 	downloadComponentFile(component, 'controller');
 	downloadComponentFile(component, 'helper');
+	downloadComponentFile(component, 'renderer');
 }
 
 function downloadComponentFile(component, fileType){
 	var fileTypeMap = {
 		component: '.cmp',
 		controller: 'Controller.js',
-		helper: 'Helper.js'
+		helper: 'Helper.js',
+		renderer: 'Renderer.js'
 	};
 
 	var file = fs.createWriteStream(__dirname + "/strike-components/" + component + "/" + component + fileTypeMap[fileType]);
@@ -204,6 +196,7 @@ function createAuraDefinitionBundle(inputArgs){
 		createComponentCMP(bundleId, inputArgs);
 		createComponentController(bundleId, inputArgs);
 		createComponentHelper(bundleId, inputArgs);
+		createComponentRenderer(bundleId, inputArgs);
 	});
 }
 
@@ -335,6 +328,27 @@ function updateComponentHelper(helperId){
 		  }, function(err, res) {
 		  if (err) { return console.error(err); }
 		  console.log('Helper has been updated');
+		});
+	});
+}
+
+function createComponentRenderer(bundleId, inputArgs){
+	fs.readFile(__dirname + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + 'Renderer.js', 'utf8', function(err, contents){
+		if(err){
+			console.log('Renderer file not found. Falling back on default');
+			var rendererContent = '({\n\t// Your renderer method overrides go here \n})';
+		} else {
+			var rendererContent = contents;
+		}
+
+		conn.tooling.sobject('AuraDefinition').create({
+		AuraDefinitionBundleId: bundleId,
+		    DefType: 'RENDERER',
+		    Format: 'JS',
+		    Source: rendererContent
+		  }, function(err, res) {
+		  if (err) { return console.error(err); }
+		  console.log(inputArgs.name + ' Renderer has been created');
 		});
 	});
 }
