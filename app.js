@@ -59,9 +59,26 @@ function createStrikeComponentFolder(){
 	fs.existsSync(__dirname + "/strike-components") || fs.mkdirSync(__dirname + "/strike-components");	
 }
 
+function deleteFolderRecursive(path) {
+    var files = [];
+    if( fs.existsSync(path) ) {
+        files = fs.readdirSync(path);
+        files.forEach(function(file,index){
+            var curPath = path + "/" + file;
+            if(fs.lstatSync(curPath).isDirectory()) { // recurse
+                deleteFolderRecursive(curPath);
+            } else { // delete file
+                fs.unlinkSync(curPath);
+            }
+        });
+        fs.rmdirSync(path);
+    }
+}
+
+
 function downloadTargetComponents(targetComponents){
-	targetComponents.forEach(function(component){
-		downloadComponentBundle(component);
+	targetComponents.forEach(function(componentName){
+		downloadComponentBundle(componentName);
 	});
 }
 
@@ -111,16 +128,16 @@ function bundleExists(response){
 	return response.records.length > 0;
 }
 
-function downloadComponentBundle(component){
-	fs.mkdirSync(__dirname + "/strike-components/" + component);
+function downloadComponentBundle(componentName){
+	fs.mkdirSync(__dirname + "/strike-components/" + componentName);
 	
-	downloadComponentFile(component, 'component');
-	downloadComponentFile(component, 'controller');
-	downloadComponentFile(component, 'helper');
-	downloadComponentFile(component, 'renderer');
+	downloadComponentFile(componentName, 'component');
+	downloadComponentFile(componentName, 'controller');
+	downloadComponentFile(componentName, 'helper');
+	downloadComponentFile(componentName, 'renderer');
 }
 
-function downloadComponentFile(component, fileType){
+function downloadComponentFile(componentName, fileType){
 	var fileTypeMap = {
 		component: '.cmp',
 		controller: 'Controller.js',
@@ -128,8 +145,8 @@ function downloadComponentFile(component, fileType){
 		renderer: 'Renderer.js'
 	};
 
-	var file = fs.createWriteStream(__dirname + "/strike-components/" + component + "/" + component + fileTypeMap[fileType]);
-	var request = http.get(REPO_BASE_URL + "/" + component + "/" + component + fileTypeMap[fileType], function(response) {
+	var file = fs.createWriteStream(__dirname + "/strike-components/" + componentName + "/" + componentName + fileTypeMap[fileType]);
+	var request = http.get(REPO_BASE_URL + "/" + componentName + "/" + componentName + fileTypeMap[fileType], function(response) {
 		var body = '';
 		
 		response.on('data', function(d){
@@ -139,28 +156,13 @@ function downloadComponentFile(component, fileType){
 		response.on('end', function(){
 			if(body == '404: Not Found\n'){
 				//if we find out later that the file is actually a 404, we go and delete the file since it wont save to Salesforce
-				fs.unlinkSync(__dirname + "/strike-components/" + component + "/" + component + fileTypeMap[fileType]);
+				fs.unlinkSync(__dirname + "/strike-components/" + componentName + "/" + componentName + fileTypeMap[fileType]);
 			}		
 		});
 		response.pipe(file);
 	});
 }
 
-function deleteFolderRecursive(path) {
-    var files = [];
-    if( fs.existsSync(path) ) {
-        files = fs.readdirSync(path);
-        files.forEach(function(file,index){
-            var curPath = path + "/" + file;
-            if(fs.lstatSync(curPath).isDirectory()) { // recurse
-                deleteFolderRecursive(curPath);
-            } else { // delete file
-                fs.unlinkSync(curPath);
-            }
-        });
-        fs.rmdirSync(path);
-    }
-}
 
 function createAuraDefinitionBundle(inputArgs){
 	conn.tooling.sobject('AuraDefinitionBundle').create({
