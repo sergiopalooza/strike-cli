@@ -35,13 +35,7 @@ function configurePromptSchema(){
 			password: {
 				description: 'Password',
 				hidden: true
-			}//,
-			// inputComponentName: {
-			// 	description: 'Component Name'
-			// },
-			// inputDescription: {
-			// 	description: 'Description'
-			// }
+			}
 		}
 	};
 	return promptSchema;
@@ -102,6 +96,10 @@ function getUserInput(){
 
 					conn.tooling.query("Select Id, AuraDefinitionBundleId, DefType FROM AuraDefinition WHERE AuraDefinitionBundleId ='" + bundleId + "'" + "AND DefType ='HELPER'", function(err, res){
 						updateComponentHelper(res.records[0].Id);
+					});
+
+					conn.tooling.query("Select Id, AuraDefinitionBundleId, DefType FROM AuraDefinition WHERE AuraDefinitionBundleId ='" + bundleId + "'" + "AND DefType ='RENDERER'", function(err, res){
+						updateComponentRenderer(res.records[0].Id);
 					});
 	
 				} else { //No bundle was found with the same Developer Name
@@ -349,6 +347,25 @@ function createComponentRenderer(bundleId, inputArgs){
 		  }, function(err, res) {
 		  if (err) { return console.error(err); }
 		  console.log(inputArgs.name + ' Renderer has been created');
+		});
+	});
+}
+
+function updateComponentRenderer(rendererId){
+	fs.readFile(__dirname + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + 'Renderer.js', 'utf8', function(err, contents){
+		if(err){
+			console.log('Renderer file not found. Falling back on default');
+			var rendererContent = '({\n\t// Your renderer method overrides go here \n})';
+		} else {
+			var rendererContent = contents;
+		}
+
+		conn.tooling.sobject('AuraDefinition').update({
+			Id: rendererId,
+		    Source: rendererContent
+		  }, function(err, res) {
+		  if (err) { return console.error(err); }
+		  console.log('Renderer has been updated');
 		});
 	});
 }
