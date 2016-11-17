@@ -74,6 +74,7 @@ function getUserInput(){
 	prompt.start();
 	prompt.get(promptSchema, function (err, res){
 		if (err) { return console.error(chalk.red(err)); }
+		
 		var userInput = createUserInputObj(res);
 		
 		conn.login(userInput.username, userInput.password, function(err, res) {
@@ -81,15 +82,12 @@ function getUserInput(){
 			//checking if a Aura Definition Bundle already exists with the same name as the argument
 			conn.tooling.query("Select Id, DeveloperName FROM AuraDefinitionBundle WHERE DeveloperName ='" + process.argv[2] + "'", function(err, res){
 				if (err) { return console.error(chalk.red(err)); }
-				if(res.records.length > 0){
-					var bundleId = res.records[0].Id;
-					
-					updateComponentFile(bundleId, 'COMPONENT');
-					updateComponentFile(bundleId, 'CONTROLLER');
-					updateComponentFile(bundleId, 'HELPER');
-					updateComponentFile(bundleId, 'RENDERER');
-				} else { //No bundle was found with the same Developer Name
+
+				if(res.records.length == 0){
 					createAuraDefinitionBundle(userInput.bundleInfo);
+				} else if(res.records.length > 0){ 
+					var bundleId = res.records[0].Id;
+					updateComponentFiles(bundleId, ['COMPONENT', 'CONTROLLER', 'HELPER', 'RENDERER']);
 				}
 
 			});
@@ -238,33 +236,35 @@ function createComponentController(bundleId, inputArgs){
 	});
 }
 
-function updateComponentFile(bundleId, defType){
+function updateComponentFiles(bundleId, defTypeArray){
 	var defTypeMap = {
 		COMPONENT: '.cmp',
 		CONTROLLER: 'Controller.js',
 		HELPER: 'Helper.js',
 		RENDERER: 'Renderer.js'
 	};
-
-	conn.tooling.query("Select Id, AuraDefinitionBundleId, DefType FROM AuraDefinition WHERE AuraDefinitionBundleId ='" + bundleId + "'" + "AND DefType ='"+ defType + "'", function(err, res){
-		var fileId = res.records[0].Id;
-		fs.readFile(__dirname + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + defTypeMap[defType], 'utf8', function(err, contents){
-			if(err){
-				console.log(defType + ' file not found. Not updating.');
-			} else {
-				var fileContent = contents;
-				conn.tooling.sobject('AuraDefinition').update({
-					Id: fileId,
-				    Source: fileContent
-				  }, function(err, res) {
-				  if (err) { return console.error(err); }
-				  console.log(defType + ' has been updated');
-				});	
-			}
+	
+	defTypeArray.forEach(function(defType){
+		conn.tooling.query("Select Id, AuraDefinitionBundleId, DefType FROM AuraDefinition WHERE AuraDefinitionBundleId ='" + bundleId + "'" + "AND DefType ='"+ defType + "'", function(err, res){
+			var fileId = res.records[0].Id;
+			fs.readFile(__dirname + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + defTypeMap[defType], 'utf8', function(err, contents){
+				if(err){
+					console.log(defType + ' file not found. Not updating.');
+				} else {
+					var fileContent = contents;
+					conn.tooling.sobject('AuraDefinition').update({
+						Id: fileId,
+					    Source: fileContent
+					  }, function(err, res) {
+					  if (err) { return console.error(err); }
+					  console.log(defType + ' has been updated');
+					});	
+				}
+			});
 		});
+
 	});
 }
-
 
 function createComponentHelper(bundleId, inputArgs){
 	fs.readFile(__dirname + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + 'Helper.js', 'utf8', function(err, contents){
@@ -287,7 +287,6 @@ function createComponentHelper(bundleId, inputArgs){
 	});
 }
 
-
 function createComponentRenderer(bundleId, inputArgs){
 	fs.readFile(__dirname + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + 'Renderer.js', 'utf8', function(err, contents){
 		if(err){
@@ -308,7 +307,6 @@ function createComponentRenderer(bundleId, inputArgs){
 		});
 	});
 }
-
 
 function generateRandomComponentName(){
 	var date = new Date();
