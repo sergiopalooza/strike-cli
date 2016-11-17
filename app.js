@@ -76,20 +76,19 @@ function getUserInput(){
 		if (err) { return console.error(chalk.red(err)); }
 		
 		var userInput = createUserInputObj(res);
-		
+
 		conn.login(userInput.username, userInput.password, function(err, res) {
 			if (err) { return console.error(chalk.red(err)); }
 			//checking if a Aura Definition Bundle already exists with the same name as the argument
 			conn.tooling.query("Select Id, DeveloperName FROM AuraDefinitionBundle WHERE DeveloperName ='" + process.argv[2] + "'", function(err, res){
 				if (err) { return console.error(chalk.red(err)); }
 
-				if(res.records.length == 0){
-					createAuraDefinitionBundle(userInput.bundleInfo);
-				} else if(res.records.length > 0){ 
+				if(bundleExists(res)){
 					var bundleId = res.records[0].Id;
 					updateComponentFiles(bundleId, ['COMPONENT', 'CONTROLLER', 'HELPER', 'RENDERER']);
+				} else{ 
+					createAuraDefinitionBundle(userInput.bundleInfo);
 				}
-
 			});
 		});
 	});
@@ -106,6 +105,10 @@ function createUserInputObj(promptResponse){
 		}
 	};
 	return userInputObj;
+}
+
+function bundleExists(response){
+	return response.records.length > 0;
 }
 
 function downloadComponentBundle(component){
