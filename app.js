@@ -99,6 +99,7 @@ function downloadComponentFile(componentName, fileType){
 
 	var file = fs.createWriteStream(__dirname + "/strike-components/" + componentName + "/" + componentName + fileTypeMap[fileType]);
 	var request = http.get(REPO_BASE_URL + "/" + componentName + "/" + componentName + fileTypeMap[fileType], function(response) {
+		response.pipe(file);
 		var body = '';
 		
 		response.on('data', function(d){
@@ -111,7 +112,7 @@ function downloadComponentFile(componentName, fileType){
 				fs.unlinkSync(__dirname + "/strike-components/" + componentName + "/" + componentName + fileTypeMap[fileType]);
 			}		
 		});
-		response.pipe(file);
+		
 	});
 }
 
