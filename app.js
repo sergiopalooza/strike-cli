@@ -14,7 +14,8 @@ var REPO_BASE_URL = "https://raw.githubusercontent.com/appiphony/Strike-Componen
 var TARGET_COMPONENTS = ['strike_badge', 'svg']; //See if we can find a way to iterate through the Github folder to avoid this
 
 drawScreen();
-
+console.log(__dirname)
+console.log(process.cwd());
 if(downloadFlagExists()){
 	createStrikeComponentFolder();
 	downloadTargetComponents(TARGET_COMPONENTS);
@@ -55,8 +56,8 @@ function downloadFlagExists() {
 }
 
 function createStrikeComponentFolder(){
-	deleteFolderRecursive(__dirname + "/strike-components"); //uncomment if you want to create the folder everytime
-	fs.existsSync(__dirname + "/strike-components") || fs.mkdirSync(__dirname + "/strike-components");	
+	deleteFolderRecursive(process.cwd() + "/strike-components"); //uncomment if you want to create the folder everytime
+	fs.existsSync(process.cwd() + "/strike-components") || fs.mkdirSync(process.cwd() + "/strike-components");	
 }
 
 function deleteFolderRecursive(path) {
@@ -82,7 +83,7 @@ function downloadTargetComponents(targetComponents){
 }
 
 function downloadComponentBundle(componentName){
-	fs.mkdirSync(__dirname + "/strike-components/" + componentName);
+	fs.mkdirSync(process.cwd() + "/strike-components/" + componentName);
 	downloadComponentFile(componentName, 'component');
 	downloadComponentFile(componentName, 'controller');
 	downloadComponentFile(componentName, 'helper');
@@ -97,7 +98,7 @@ function downloadComponentFile(componentName, fileType){
 		renderer: 'Renderer.js'
 	};
 
-	var file = fs.createWriteStream(__dirname + "/strike-components/" + componentName + "/" + componentName + fileTypeMap[fileType]);
+	var file = fs.createWriteStream(process.cwd() + "/strike-components/" + componentName + "/" + componentName + fileTypeMap[fileType], {flags: 'w', mode: 0755});
 	var request = http.get(REPO_BASE_URL + "/" + componentName + "/" + componentName + fileTypeMap[fileType], function(response) {
 		response.pipe(file);
 		var body = '';
@@ -109,7 +110,7 @@ function downloadComponentFile(componentName, fileType){
 		response.on('end', function(){
 			if(body == '404: Not Found\n'){
 				//if we find out later that the file is actually a 404, we go and delete the file since it wont save to Salesforce
-				fs.unlinkSync(__dirname + "/strike-components/" + componentName + "/" + componentName + fileTypeMap[fileType]);
+				fs.unlinkSync(process.cwd() + "/strike-components/" + componentName + "/" + componentName + fileTypeMap[fileType]);
 			}		
 		});
 		
@@ -198,7 +199,7 @@ function createApplication(bundleId){
 }
 
 function createComponentCMP(bundleId, inputArgs){
-	fs.readFile(__dirname + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + '.cmp', 'utf8', function(err, contents){
+	fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + '.cmp', 'utf8', function(err, contents){
 		if(err){
 			console.log('CMP file not found. Falling back on default');
 			var cmpContent = '<aura:component></aura:component>';
@@ -219,7 +220,7 @@ function createComponentCMP(bundleId, inputArgs){
 }
 
 function createComponentController(bundleId, inputArgs){
-	fs.readFile(__dirname + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + 'Controller.js', 'utf8', function(err, contents){
+	fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + 'Controller.js', 'utf8', function(err, contents){
 		if(err){
 			console.log('Controller file not found. Falling back on default');
 			var controllerContent = '({\n\tmyAction : function(component, event, helper) {\n\t}\n})';
@@ -250,7 +251,7 @@ function updateComponentFiles(bundleId, defTypeArray){
 	defTypeArray.forEach(function(defType){
 		conn.tooling.query("Select Id, AuraDefinitionBundleId, DefType FROM AuraDefinition WHERE AuraDefinitionBundleId ='" + bundleId + "'" + "AND DefType ='"+ defType + "'", function(err, res){
 			var fileId = res.records[0].Id;
-			fs.readFile(__dirname + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + defTypeMap[defType], 'utf8', function(err, contents){
+			fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + defTypeMap[defType], 'utf8', function(err, contents){
 				if(err){
 					console.log(defType + ' file not found. Not updating.');
 				} else {
@@ -270,7 +271,7 @@ function updateComponentFiles(bundleId, defTypeArray){
 }
 
 function createComponentHelper(bundleId, inputArgs){
-	fs.readFile(__dirname + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + 'Helper.js', 'utf8', function(err, contents){
+	fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + 'Helper.js', 'utf8', function(err, contents){
 		if(err){
 			console.log('Helper file not found. Falling back on default');
 			var helperContent = '({\n\thelperMethod : function() {\n\t}\n})';
@@ -291,7 +292,7 @@ function createComponentHelper(bundleId, inputArgs){
 }
 
 function createComponentRenderer(bundleId, inputArgs){
-	fs.readFile(__dirname + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + 'Renderer.js', 'utf8', function(err, contents){
+	fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + 'Renderer.js', 'utf8', function(err, contents){
 		if(err){
 			console.log('Renderer file not found. Falling back on default');
 			var rendererContent = '({\n\t// Your renderer method overrides go here \n})';
