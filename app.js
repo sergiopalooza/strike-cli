@@ -6,17 +6,61 @@ var jsforce = require('jsforce');
 var chalk = require('chalk');
 var figlet = require('figlet');
 var clear = require('clear');
+var low = require('lowdb');
+var db = low('db.json');
 
 var REPO_BASE_URL = "https://raw.githubusercontent.com/appiphony/Strike-Components/master/components";
 var TARGET_COMPONENTS = ['strike_badge', 'svg']; //See if we can find a way to iterate through the Github folder to avoid this
 
 var conn = new jsforce.Connection();
-var promptSchema = configurePromptSchema();
 
-drawScreen();
-createStrikeComponentFolder();
-downloadTargetComponents(process.argv[2]);
-getUserInput();
+db.defaults({ credentials: []})
+	.value();
+
+if(addFlagExists()){
+	prompt.start();
+
+	prompt.get(['username', 'password', 'isDefault'], function(err, result){
+
+		if(result.isDefault == 'true' || result.isDefault == 'True'){
+			//setIsDefaultToFalseForAllRecords()
+
+			// console.log('isDefault is true');
+			// db.get('credentials')
+			// 	.find({ isDefault: 'true'})
+			// 	.assign({ isDefault: 'false'})
+			// 	.value();			
+		}
+
+		db.get('credentials')
+			.push({ username: result.username, password: result.password, orgName: process.argv[3], isDefault: result.isDefault})
+			.value();
+	});
+} else if(setFlagExists()){
+	db.get('credentials')
+		.find({ orgName: process.argv[3] })
+		.assign({ isDefault: 'true' })
+		.value();
+
+		console.log(process.argv[3] + ' has been set as the default user');
+
+} else {
+	var promptSchema = configurePromptSchema();
+
+	drawScreen();
+	createStrikeComponentFolder();
+	downloadTargetComponents(process.argv[2]);
+	getUserInput();
+}
+
+
+function addFlagExists() {
+	return process.argv[2] == '-add' || process.argv[2] == '-a';
+}
+
+function setFlagExists() {
+	return process.argv[2] == '-set' || process.argv[2] == '-s';
+}
 
 function configurePromptSchema(){
 	prompt.message = 'Strike-CLI';
@@ -118,8 +162,12 @@ function getUserInput(){
 	prompt.start();
 	prompt.get(promptSchema, function (err, res){
 		if (err) { return console.error(chalk.red(err)); }
-		
+
 		var userInput = createUserInputObj(res);
+
+		db.get('credentials')
+			.push({ username: userInput.username, password: userInput.password})
+			.value();
 
 		conn.login(userInput.username, userInput.password, function(err, res) {
 			if (err) { return console.error(chalk.red(err)); }

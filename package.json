@@ -17,6 +17,8 @@
     "figlet": "^1.2.0",
     "inquirer": "^1.2.2",
     "jsforce": "^1.7.1",
+    "lodash": "^4.17.2",
+    "lowdb": "^0.14.0",
     "preferences": "^0.2.1",
     "prompt": "^1.0.0"
   }
