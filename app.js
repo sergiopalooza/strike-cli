@@ -137,7 +137,9 @@ function getUserInput(){
 						deleteFolderRecursive(process.cwd() + "/strike-components");
 					});
 				} else{ 
-					createAuraDefinitionBundle(userInput.bundleInfo);
+					createAuraDefinitionBundle(userInput.bundleInfo, function(err){
+						deleteFolderRecursive(process.cwd() + "/strike-components");
+					});
 				}
 			});
 		});
@@ -161,7 +163,7 @@ function bundleExists(response){
 	return response.records.length > 0;
 }
 
-function createAuraDefinitionBundle(inputArgs){
+function createAuraDefinitionBundle(inputArgs, callback){
 	conn.tooling.sobject('AuraDefinitionBundle').create({
 		Description: inputArgs.description, // my description
 	  	DeveloperName: inputArgs.name,
@@ -181,6 +183,7 @@ function createAuraDefinitionBundle(inputArgs){
 		createComponentController(bundleId, inputArgs);
 		createComponentHelper(bundleId, inputArgs);
 		createComponentRenderer(bundleId, inputArgs);
+		callback(); //if the files end up being deleted before we read them then look here first when debugging
 	});
 }
 
@@ -202,7 +205,7 @@ function createComponentCMP(bundleId, inputArgs){
 			console.log('CMP file not found. Falling back on default');
 			var cmpContent = '<aura:component></aura:component>';
 		} else {
-			var cmpContent = contents;	
+			var cmpContent = contents;
 		}
 		
 		conn.tooling.sobject('AuraDefinition').create({
