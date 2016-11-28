@@ -119,7 +119,7 @@ function downloadComponentFile(componentName, fileType){
 
 function doesComponentFolderExist(){
 
-	return fs.existsSync(__dirname + "/strike-components"); 
+	return fs.existsSync(process.cwd() + "/strike-components"); 
 }
 
 function getUserInput(){
