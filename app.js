@@ -37,10 +37,10 @@ if(addFlagExists()){
 			.value();
 	});
 } else if(setFlagExists()){
-	db.get('credentials')
-		.find({ orgName: process.argv[3] })
-		.assign({ isDefault: 'true' })
-		.value();
+	console.log(db.get('credentials')
+			.find({ orgName: process.argv[3] })
+			.assign({ isDefault: 'true' })
+			.value());
 
 		console.log(process.argv[3] + ' has been set as the default user');
 
