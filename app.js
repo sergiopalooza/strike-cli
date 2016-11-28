@@ -7,11 +7,11 @@ var chalk = require('chalk');
 var figlet = require('figlet');
 var clear = require('clear');
 
-var conn = new jsforce.Connection();
-var promptSchema = configurePromptSchema();
-
 var REPO_BASE_URL = "https://raw.githubusercontent.com/appiphony/Strike-Components/master/components";
 var TARGET_COMPONENTS = ['strike_badge', 'svg']; //See if we can find a way to iterate through the Github folder to avoid this
+
+var conn = new jsforce.Connection();
+var promptSchema = configurePromptSchema();
 
 drawScreen();
 createStrikeComponentFolder();
@@ -41,10 +41,6 @@ function drawScreen(){
 	    figlet.textSync('Strike-CLI', { horizontalLayout: 'full' })
 	  )
 	);
-}
-
-function downloadFlagExists() {
-	return process.argv[2] == '-download' || process.argv[2] == '-d';
 }
 
 function createStrikeComponentFolder(){
@@ -328,4 +324,8 @@ function generateRandomComponentName(){
 	var randomInt = dateComponents.join("");
 	var componentName = 'Prototype_Component' + randomInt;
 	return componentName;
+}
+
+function downloadFlagExists() {
+	return process.argv[2] == '-download' || process.argv[2] == '-d';
 }
