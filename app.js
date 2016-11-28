@@ -14,17 +14,9 @@ var REPO_BASE_URL = "https://raw.githubusercontent.com/appiphony/Strike-Componen
 var TARGET_COMPONENTS = ['strike_badge', 'svg']; //See if we can find a way to iterate through the Github folder to avoid this
 
 drawScreen();
-console.log(__dirname)
-console.log(process.cwd());
-if(downloadFlagExists()){
-	createStrikeComponentFolder();
-	downloadTargetComponents(TARGET_COMPONENTS);
-} else {
-	if(!doesComponentFolderExist()){
-		console.error(chalk.yellow("WARNING: COMPONENT FOLDER NOT FOUND. TRY 'sudo strike -download' TO DOWNLOAD COMPONENTS"));
-	}
-	getUserInput();
-}
+createStrikeComponentFolder();
+downloadTargetComponents(process.argv[2]);
+getUserInput();
 
 function configurePromptSchema(){
 	prompt.message = 'Strike-CLI';
@@ -77,9 +69,13 @@ function deleteFolderRecursive(path) {
 }
 
 function downloadTargetComponents(targetComponents){
-	targetComponents.forEach(function(componentName){
-		downloadComponentBundle(componentName);
-	});
+	if(Array.isArray(targetComponents)){
+		targetComponents.forEach(function(componentName){
+			downloadComponentBundle(componentName);
+		});
+	} else {
+		downloadComponentBundle(targetComponents);
+	}
 }
 
 function downloadComponentBundle(componentName){
@@ -137,7 +133,9 @@ function getUserInput(){
 
 				if(bundleExists(res)){
 					var bundleId = res.records[0].Id;
-					updateComponentFiles(bundleId, ['COMPONENT', 'CONTROLLER', 'HELPER', 'RENDERER']);
+					updateComponentFiles(bundleId, ['COMPONENT', 'CONTROLLER', 'HELPER', 'RENDERER'], function(){
+						deleteFolderRecursive(process.cwd() + "/strike-components");
+					});
 				} else{ 
 					createAuraDefinitionBundle(userInput.bundleInfo);
 				}
@@ -240,13 +238,15 @@ function createComponentController(bundleId, inputArgs){
 	});
 }
 
-function updateComponentFiles(bundleId, defTypeArray){
+function updateComponentFiles(bundleId, defTypeArray, callback){
 	var defTypeMap = {
 		COMPONENT: '.cmp',
 		CONTROLLER: 'Controller.js',
 		HELPER: 'Helper.js',
 		RENDERER: 'Renderer.js'
 	};
+
+	var itemsProcessed = 0;
 	
 	defTypeArray.forEach(function(defType){
 		conn.tooling.query("Select Id, AuraDefinitionBundleId, DefType FROM AuraDefinition WHERE AuraDefinitionBundleId ='" + bundleId + "'" + "AND DefType ='"+ defType + "'", function(err, res){
@@ -264,9 +264,12 @@ function updateComponentFiles(bundleId, defTypeArray){
 					  console.log(defType + ' has been updated');
 					});	
 				}
+				//below two lines are needed to run a callback once a forEach loop has finished
+				//Hopefully this hack can be elimintated after implementing an async library
+				itemsProcessed++;
+				if(itemsProcessed == defTypeArray.length) { callback(); }
 			});
 		});
-
 	});
 }
 
