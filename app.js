@@ -42,13 +42,8 @@ if(addFlagExists()){
 			.value());
 		//TODO set all other records to isDefault: False
 		console.log(process.argv[3] + ' has been set as the default user');
-
 } else {
-	// if(hasDefaultSet()){
-		//TODO configure prompt to use the defaulted username/password
-	// }
 	var promptSchema = configurePromptSchema();
-
 	drawScreen();
 	createStrikeComponentFolder();
 	downloadTargetComponents(process.argv[2]);
@@ -69,19 +64,27 @@ function setFlagExists() {
 }
 
 function configurePromptSchema(){
-	prompt.message = 'Strike-CLI';
-	var promptSchema = {
-		properties: {
-			username: {
-				description: 'Username'
-			},
-			password: {
-				description: 'Password',
-				hidden: true
+	if(!credentialsExist()){
+		prompt.message = 'Strike-CLI';
+		var promptSchema = {
+			properties: {
+				username: {
+					description: 'Username'
+				},
+				password: {
+					description: 'Password',
+					hidden: true
+				}
 			}
-		}
-	};
-	return promptSchema;
+		};
+		return promptSchema;
+	} else {
+		return {properties:{}};	//will not prompt user for any questions
+	}
+}
+
+function credentialsExist(){
+	return db.get('credentials').find({ id: 1 }).value() != undefined
 }
 
 function drawScreen(){
@@ -170,10 +173,7 @@ function getUserInput(){
 		if (err) { return console.error(chalk.red(err)); }
 
 		var userInput = createUserInputObj(res);
-
-		db.get('credentials')
-			.push({ username: userInput.username, password: userInput.password})
-			.value();
+		saveUserInput(userInput); //comment this if you dont want to capture credentials
 
 		conn.login(userInput.username, userInput.password, function(err, res) {
 			if (err) { return console.error(chalk.red(err)); }
@@ -198,15 +198,23 @@ function getUserInput(){
 
 function createUserInputObj(promptResponse){
 	var userInputObj = {
-		username: promptResponse.username || process.env.SF_STRIKE_USERNAME,
-		password: promptResponse.password || process.env.SF_STRIKE_PASSWORD,
+		username: promptResponse.username || db.get('credentials').find({ id: 1 }).value().username,
+		password: promptResponse.password || db.get('credentials').find({ id: 1 }).value().password,
+		// username: promptResponse.username || process.env.SF_STRIKE_USERNAME, //uncomment for faster development
+		// password: promptResponse.password || process.env.SF_STRIKE_PASSWORD, //uncomment for faster development
 		bundleInfo: {
 			name: process.argv[2],
-			// name: promptResponse.inputComponentName || generateRandomComponentName(),
+			// name: promptResponse.inputComponentName || generateRandomComponentName(), //uncomment for faster development
 			description: promptResponse.inputDescription || 'I was created from Strike-CLI'
 		}
 	};
 	return userInputObj;
+}
+
+function saveUserInput(userInput){
+	db.get('credentials')
+		.push({ id: 1, username: userInput.username, password: userInput.password})
+		.value();	
 }
 
 function bundleExists(response){
