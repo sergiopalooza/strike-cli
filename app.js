@@ -14,7 +14,10 @@ var REPO_BASE_URL = "https://raw.githubusercontent.com/appiphony/Strike-Componen
 var conn = new jsforce.Connection();
 intializeDatabase();
 
-if(addFlagExists()){
+if(resetFlagExists()){
+	fs.unlinkSync(process.cwd() + "/db.json");
+	console.log('Configuration file reset');
+} else if(addFlagExists()){
 	prompt.start();
 	prompt.get(['username', 'password', 'isDefault'], function(err, result){
 
@@ -60,6 +63,10 @@ function addFlagExists() {
 
 function setFlagExists() {
 	return process.argv[2] == '-set' || process.argv[2] == '-s';
+}
+
+function resetFlagExists() {
+	return process.argv[2] == '-reset' || process.argv[2] == '-r';
 }
 
 function configurePromptSchema(){
