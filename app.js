@@ -10,10 +10,8 @@ var low = require('lowdb');
 var db = low('db.json');
 
 var REPO_BASE_URL = "https://raw.githubusercontent.com/appiphony/Strike-Components/master/components";
-var TARGET_COMPONENTS = ['strike_badge', 'svg']; //See if we can find a way to iterate through the Github folder to avoid this
 
 var conn = new jsforce.Connection();
-
 intializeDatabase();
 
 if(addFlagExists()){
@@ -43,10 +41,11 @@ if(addFlagExists()){
 		//TODO set all other records to isDefault: False
 		console.log(process.argv[3] + ' has been set as the default user');
 } else {
+	var targetComponent = process.argv[2];
 	var promptSchema = configurePromptSchema();
 	drawScreen();
 	createStrikeComponentFolder();
-	downloadTargetComponents(process.argv[2]);
+	downloadTargetComponents(targetComponent);
 	getUserInput();
 }
 
