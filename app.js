@@ -14,15 +14,14 @@ var TARGET_COMPONENTS = ['strike_badge', 'svg']; //See if we can find a way to i
 
 var conn = new jsforce.Connection();
 
-db.defaults({ credentials: []})
-	.value();
+intializeDatabase();
 
 if(addFlagExists()){
 	prompt.start();
-
 	prompt.get(['username', 'password', 'isDefault'], function(err, result){
 
 		if(result.isDefault == 'true' || result.isDefault == 'True'){
+			//TODO Ask mike how to update all records that match a field 
 			//setIsDefaultToFalseForAllRecords()
 
 			// console.log('isDefault is true');
@@ -41,10 +40,13 @@ if(addFlagExists()){
 			.find({ orgName: process.argv[3] })
 			.assign({ isDefault: 'true' })
 			.value());
-
+		//TODO set all other records to isDefault: False
 		console.log(process.argv[3] + ' has been set as the default user');
 
 } else {
+	// if(hasDefaultSet()){
+		//TODO configure prompt to use the defaulted username/password
+	// }
 	var promptSchema = configurePromptSchema();
 
 	drawScreen();
@@ -53,6 +55,10 @@ if(addFlagExists()){
 	getUserInput();
 }
 
+function intializeDatabase (){
+	db.defaults({ credentials: []})
+		.value();	
+}
 
 function addFlagExists() {
 	return process.argv[2] == '-add' || process.argv[2] == '-a';
