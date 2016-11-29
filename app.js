@@ -18,31 +18,31 @@ if(resetFlagExists()){
 	fs.unlinkSync(process.cwd() + "/db.json");
 	console.log('Configuration file reset');
 } else if(addFlagExists()){
-	prompt.start();
-	prompt.get(['username', 'password', 'isDefault'], function(err, result){
+	// prompt.start();
+	// prompt.get(['username', 'password', 'isDefault'], function(err, result){
 
-		if(result.isDefault == 'true' || result.isDefault == 'True'){
-			//TODO Ask mike how to update all records that match a field 
-			//setIsDefaultToFalseForAllRecords()
+	// 	if(result.isDefault == 'true' || result.isDefault == 'True'){
+	// 		//TODO Ask mike how to update all records that match a field 
+	// 		//setIsDefaultToFalseForAllRecords()
 
-			// console.log('isDefault is true');
-			// db.get('credentials')
-			// 	.find({ isDefault: 'true'})
-			// 	.assign({ isDefault: 'false'})
-			// 	.value();			
-		}
+	// 		// console.log('isDefault is true');
+	// 		// db.get('credentials')
+	// 		// 	.find({ isDefault: 'true'})
+	// 		// 	.assign({ isDefault: 'false'})
+	// 		// 	.value();			
+	// 	}
 
-		db.get('credentials')
-			.push({ username: result.username, password: result.password, orgName: process.argv[3], isDefault: result.isDefault})
-			.value();
-	});
+	// 	db.get('credentials')
+	// 		.push({ username: result.username, password: result.password, orgName: process.argv[3], isDefault: result.isDefault})
+	// 		.value();
+	// });
 } else if(setFlagExists()){
-	console.log(db.get('credentials')
-			.find({ orgName: process.argv[3] })
-			.assign({ isDefault: 'true' })
-			.value());
-		//TODO set all other records to isDefault: False
-		console.log(process.argv[3] + ' has been set as the default user');
+	// console.log(db.get('credentials')
+	// 		.find({ orgName: process.argv[3] })
+	// 		.assign({ isDefault: 'true' })
+	// 		.value());
+	// 	//TODO set all other records to isDefault: False
+	// 	console.log(process.argv[3] + ' has been set as the default user');
 } else {
 	var targetComponent = process.argv[2];
 	var promptSchema = configurePromptSchema();
@@ -179,10 +179,11 @@ function getUserInput(){
 		if (err) { return console.error(chalk.red(err)); }
 
 		var userInput = createUserInputObj(res);
-		saveUserInput(userInput); //comment this if you dont want to capture credentials
-
+		
 		conn.login(userInput.username, userInput.password, function(err, res) {
 			if (err) { return console.error(chalk.red(err)); }
+
+			saveUserInput(userInput.username, userInput.password); //comment this if you dont want to capture credentials
 			//checking if a Aura Definition Bundle already exists with the same name as the argument
 			conn.tooling.query("Select Id, DeveloperName FROM AuraDefinitionBundle WHERE DeveloperName ='" + process.argv[2] + "'", function(err, res){
 				if (err) { return console.error(chalk.red(err)); }
@@ -217,9 +218,9 @@ function createUserInputObj(promptResponse){
 	return userInputObj;
 }
 
-function saveUserInput(userInput){
+function saveUserInput(username, password){
 	db.get('credentials')
-		.push({ id: 1, username: userInput.username, password: userInput.password})
+		.push({ id: 1, username: username, password: password})
 		.value();	
 }
 
