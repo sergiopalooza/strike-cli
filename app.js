@@ -155,13 +155,13 @@ function downloadComponentFile(componentName, fileType){
 	var file = fs.createWriteStream(process.cwd() + "/strike-components/" + componentName + "/" + componentName + fileTypeMap[fileType], {flags: 'w', mode: 0755});
 
 	async.waterfall([
-		function(callback){
+		function requestFile(callback){
 			console.log('requesting the url');
 			http.get(REPO_BASE_URL + "/" + componentName + "/" + componentName + fileTypeMap[fileType], function(response) {
 				callback(null, response);
 			});
 		},
-		function(response, callback){
+		function writeResponseToFile(response, callback){
 			console.log('piping the response');
 			response.pipe(file);
 			var body = '';
@@ -174,15 +174,16 @@ function downloadComponentFile(componentName, fileType){
 				callback(null, body)
 			});
 		},
-		function(body, callback){
+		function verifyFileContents(body, callback){
 			console.log('checking for 404');
 			if(body == '404: Not Found\n'){
-					//if we find out later that the file is actually a 404, we go and delete the file since it wont save to Salesforce
-					fs.unlinkSync(process.cwd() + "/strike-components/" + componentName + "/" + componentName + fileTypeMap[fileType]);
-					console.log(process.cwd() + "/strike-components/" + componentName + "/" + componentName + fileTypeMap[fileType] + " was deleted");
-				}		
+				//if we find out later that the file is actually a 404, we go and delete the file since it wont save to Salesforce
+				fs.unlinkSync(process.cwd() + "/strike-components/" + componentName + "/" + componentName + fileTypeMap[fileType]);
+				console.log(process.cwd() + "/strike-components/" + componentName + "/" + componentName + fileTypeMap[fileType] + " was deleted");
+			}		
 		}
 	], function(err, result){
+		if (err) { return console.error(chalk.red(err)); }
 		console.log('all done');
 	});
 }
