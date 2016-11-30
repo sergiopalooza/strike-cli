@@ -20,15 +20,13 @@ if(resetFlagExists()){
 } else {
 	intializeDatabase();
 	var targetComponent = process.argv[2];
-	var promptSchema = configurePromptSchema();
 	drawScreen();
 	createStrikeComponentFolder();
 	downloadTargetComponents(targetComponent);
-	//getUserInput();
 	prompt.start();
 	async.waterfall([
 		function getUserInputX(callback){
-			prompt.get(promptSchema, function (err, res){
+			prompt.get(configurePromptSchema(), function (err, res){
 				if (err) { return console.error(chalk.red(err)); }
 				var userInput = createUserInputObj(res);
 				callback(null, userInput);
