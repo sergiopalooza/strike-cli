@@ -10,48 +10,67 @@ var low = require('lowdb');
 var db = low('db.json');
 var async = require('async');
 
-
 var REPO_BASE_URL = "https://raw.githubusercontent.com/appiphony/Strike-Components/master/components";
 
 var conn = new jsforce.Connection();
-intializeDatabase();
 
 if(resetFlagExists()){
 	fs.unlinkSync(process.cwd() + "/db.json");
 	console.log('Configuration file reset');
-} else if(addFlagExists()){
-	// prompt.start();
-	// prompt.get(['username', 'password', 'isDefault'], function(err, result){
-
-	// 	if(result.isDefault == 'true' || result.isDefault == 'True'){
-	// 		//TODO Ask mike how to update all records that match a field 
-	// 		//setIsDefaultToFalseForAllRecords()
-
-	// 		// console.log('isDefault is true');
-	// 		// db.get('credentials')
-	// 		// 	.find({ isDefault: 'true'})
-	// 		// 	.assign({ isDefault: 'false'})
-	// 		// 	.value();			
-	// 	}
-
-	// 	db.get('credentials')
-	// 		.push({ username: result.username, password: result.password, orgName: process.argv[3], isDefault: result.isDefault})
-	// 		.value();
-	// });
-} else if(setFlagExists()){
-	// console.log(db.get('credentials')
-	// 		.find({ orgName: process.argv[3] })
-	// 		.assign({ isDefault: 'true' })
-	// 		.value());
-	// 	//TODO set all other records to isDefault: False
-	// 	console.log(process.argv[3] + ' has been set as the default user');
 } else {
+	intializeDatabase();
 	var targetComponent = process.argv[2];
 	var promptSchema = configurePromptSchema();
 	drawScreen();
 	createStrikeComponentFolder();
 	downloadTargetComponents(targetComponent);
-	getUserInput();
+	//getUserInput();
+	prompt.start();
+	async.waterfall([
+		function getUserInputX(callback){
+			prompt.get(promptSchema, function (err, res){
+				if (err) { return console.error(chalk.red(err)); }
+				var userInput = createUserInputObj(res);
+				callback(null, userInput);
+			});	
+		},
+		function login(userInput, callback){
+			conn.login(userInput.username, userInput.password, function(err, res) {
+				if (err) { return console.error(chalk.red(err)); }
+				saveUserInput(userInput.username, userInput.password); //comment this if you dont want to capture credentials
+				callback(null, userInput);
+			});
+		},
+		function queryForExistingBundle(userInput, callback){
+			conn.tooling.query("Select Id, DeveloperName FROM AuraDefinitionBundle WHERE DeveloperName ='" + process.argv[2] + "'", function(err, res){
+				if (err) { return console.error(chalk.red(err)); }
+				callback(null, {queryResult: res, userInput: userInput});
+			});
+		},
+	], function(err, result){
+		if (bundleExists(result.queryResult)){
+			var bundleId = result.queryResult.records[0].Id;
+			async.waterfall([
+				function updateComponentFilesX(callback){
+					updateComponentFiles(bundleId, ['COMPONENT', 'CONTROLLER', 'HELPER', 'RENDERER'], function(){
+						callback(null);
+					});
+				}
+			], function(err, result){
+				deleteFolderRecursive(process.cwd() + "/strike-components");
+			});
+		} else {
+			async.waterfall([
+				function createAuraDefinitionBundleX(callback){
+					createAuraDefinitionBundle(result.userInput.bundleInfo, function(err){
+						callback(null);
+					});
+				}
+			], function(err, result){
+				deleteFolderRecursive(process.cwd() + "/strike-components");
+			});
+		}
+	});
 }
 
 function intializeDatabase (){
@@ -193,35 +212,6 @@ function doesComponentFolderExist(){
 	return fs.existsSync(process.cwd() + "/strike-components"); 
 }
 
-function getUserInput(){
-	prompt.start();
-	prompt.get(promptSchema, function (err, res){
-		if (err) { return console.error(chalk.red(err)); }
-
-		var userInput = createUserInputObj(res);
-		
-		conn.login(userInput.username, userInput.password, function(err, res) {
-			if (err) { return console.error(chalk.red(err)); }
-
-			saveUserInput(userInput.username, userInput.password); //comment this if you dont want to capture credentials
-			//checking if a Aura Definition Bundle already exists with the same name as the argument
-			conn.tooling.query("Select Id, DeveloperName FROM AuraDefinitionBundle WHERE DeveloperName ='" + process.argv[2] + "'", function(err, res){
-				if (err) { return console.error(chalk.red(err)); }
-
-				if(bundleExists(res)){
-					var bundleId = res.records[0].Id;
-					updateComponentFiles(bundleId, ['COMPONENT', 'CONTROLLER', 'HELPER', 'RENDERER'], function(){
-						deleteFolderRecursive(process.cwd() + "/strike-components");
-					});
-				} else{ 
-					createAuraDefinitionBundle(userInput.bundleInfo, function(err){
-						deleteFolderRecursive(process.cwd() + "/strike-components");
-					});
-				}
-			});
-		});
-	});
-}
 
 function createUserInputObj(promptResponse){
 	var userInputObj = {
