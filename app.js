@@ -8,6 +8,8 @@ var figlet = require('figlet');
 var clear = require('clear');
 var low = require('lowdb');
 var db = low('db.json');
+var async = require('async');
+
 
 var REPO_BASE_URL = "https://raw.githubusercontent.com/appiphony/Strike-Components/master/components";
 
@@ -117,6 +119,7 @@ function deleteFolderRecursive(path) {
                 deleteFolderRecursive(curPath);
             } else { // delete file
                 fs.unlinkSync(curPath);
+                console.log(curPath + " file was deleted");
             }
         });
         fs.rmdirSync(path);
@@ -162,6 +165,7 @@ function downloadComponentFile(componentName, fileType){
 			if(body == '404: Not Found\n'){
 				//if we find out later that the file is actually a 404, we go and delete the file since it wont save to Salesforce
 				fs.unlinkSync(process.cwd() + "/strike-components/" + componentName + "/" + componentName + fileTypeMap[fileType]);
+				console.log(process.cwd() + "/strike-components/" + componentName + "/" + componentName + fileTypeMap[fileType] + " was deleted");
 			}		
 		});
 		
@@ -314,12 +318,44 @@ function updateComponentFiles(bundleId, defTypeArray, callback){
 		RENDERER: 'Renderer.js'
 	};
 
+	// async.each(defTypeArray,
+	// 	function(defType, callback1){
+	// 		conn.tooling.query("Select Id, AuraDefinitionBundleId, DefType FROM AuraDefinition WHERE AuraDefinitionBundleId ='" + bundleId + "'" + "AND DefType ='"+ defType + "'", function(err, res){
+	// 			var fileId = res.records[0].Id;
+	// 			fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + defTypeMap[defType], 'utf8', function(err, contents){
+	// 				console.log(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + defTypeMap[defType] + " file has been read!");
+	// 				if(err){
+	// 					console.log(defType + ' file not found. Not updating.');
+	// 					callback1();
+	// 				} else {
+	// 					var fileContent = contents;
+	// 					conn.tooling.sobject('AuraDefinition').update({
+	// 						Id: fileId,
+	// 					    Source: fileContent
+	// 					  }, function(err, res) {
+	// 					  if (err) { return console.error(err); }
+	// 					  console.log(defType + ' has been updated');
+	// 					  callback1();
+	// 					});	
+	// 				}
+	// 			});
+				
+	// 		});
+	// 	},
+	// 	function(err){
+	// 		//When all async tasks are done
+	// 		console.log("all done!");
+	// 		callback();
+	// 	}
+	// );
+
+
 	var itemsProcessed = 0;
-	
 	defTypeArray.forEach(function(defType){
 		conn.tooling.query("Select Id, AuraDefinitionBundleId, DefType FROM AuraDefinition WHERE AuraDefinitionBundleId ='" + bundleId + "'" + "AND DefType ='"+ defType + "'", function(err, res){
 			var fileId = res.records[0].Id;
 			fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + defTypeMap[defType], 'utf8', function(err, contents){
+				console.log(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + defTypeMap[defType] + " file has been read!");
 				if(err){
 					console.log(defType + ' file not found. Not updating.');
 				} else {
@@ -339,6 +375,7 @@ function updateComponentFiles(bundleId, defTypeArray, callback){
 			});
 		});
 	});
+	// callback();
 }
 
 function createComponentHelper(bundleId, inputArgs){
