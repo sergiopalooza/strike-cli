@@ -47,32 +47,22 @@ if(resetFlagExists()){
 			});
 		},
 	], function(err, result){
-		if (bundleExists(result.queryResult)){
-			var bundleId = result.queryResult.records[0].Id;
-			async.waterfall([
-				function updateComponentFilesX(callback){
+		async.waterfall([
+			function upsertComponentFiles(callback){
+				if (bundleExists(result.queryResult)){
+					var bundleId = result.queryResult.records[0].Id;
 					updateComponentFiles(bundleId, ['COMPONENT', 'CONTROLLER', 'HELPER', 'RENDERER'], function(){
-					// updateComponentFiles(bundleId, ['COMPONENT'], function(){
-						callback(null, bundleId);
+						callback(null);
 					});
-				}
-			], function(err, result){
-				console.log('Starting deletion of files');
-				//TODO how can I arrange this so I can call delete folder just once?
-				deleteFolderRecursive(process.cwd() + "/strike-components");
-			});
-		} else {
-			async.waterfall([
-				function createAuraDefinitionBundleX(callback){
-					createAuraDefinitionBundle(result.userInput.bundleInfo, function(err){
+				} else {
+					createAuraDefinitionBundle(result.userInput.bundleInfo, function(){
 						callback(null);
 					});
 				}
-			], function(err, result){
-				console.log('Starting deletion of files');
-				deleteFolderRecursive(process.cwd() + "/strike-components");
-			});
-		}
+			}
+		], function(err, result){
+			deleteFolderRecursive(process.cwd() + "/strike-components");
+		});
 	});
 }
 
@@ -349,49 +339,15 @@ function updateComponentFiles(bundleId, defTypeArray, callback){
 				}
 			], function(err, result){
 				if (err) { return console.error(chalk.red(err)); }
-				// console.log('waterfall ended for ' + defType);
 				callback();
 			});
-		}, 
-		
+		}, 		
 		function(err){
 			if (err) { return console.error(chalk.red(err)); }
 			console.log('async for each has finsished');
 			callback();
 		}
 	);
-
-	// defTypeArray.forEach(function(defType){
-	// 	async.waterfall([
-	// 		function queryFileIdByDefType(callback){
-	// 			conn.tooling.query("Select Id, AuraDefinitionBundleId, DefType FROM AuraDefinition WHERE AuraDefinitionBundleId ='" + bundleId + "'" + "AND DefType ='"+ defType + "'", function(err, res){
-	// 				if (err) { return console.error(chalk.red(err)); }
-	// 				var fileId = res.records[0].Id;
-	// 				callback(null, fileId);
-	// 			});
-	// 		},
-	// 		function readFile(fileId, callback){
-	// 			fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + defTypeMap[defType], 'utf8', function(err, contents){
-	// 				console.log("reading file " + process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + defTypeMap[defType]);
-	// 				if (err) { return console.error(chalk.yellow(defType + ' could not read file')); }
-	// 				var fileContent = contents;
-	// 				callback(null, fileId, fileContent);
-	// 			});
-	// 		},
-	// 		function deployFile(fileId, fileContent, callback){
-	// 			conn.tooling.sobject('AuraDefinition').update({Id: fileId, Source: fileContent}, function(err, res){
-	// 				if (err) { return console.error(err); }
-	// 				console.log('we depoloyed ' + defType + ' has been updated');
-	// 				callback(null, defType);
-	// 			});
-	// 		}
-	// 	], function(err, result){
-	// 		if (err) { return console.error(chalk.red(err)); }
-	// 		console.log('waterfall ended for ' + defType);
-	// 		callback();
-	// 	});
-	// });
-	
 }
 
 function createComponentHelper(bundleId, inputArgs){
