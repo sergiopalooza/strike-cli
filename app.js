@@ -52,10 +52,12 @@ if(resetFlagExists()){
 			async.waterfall([
 				function updateComponentFilesX(callback){
 					updateComponentFiles(bundleId, ['COMPONENT', 'CONTROLLER', 'HELPER', 'RENDERER'], function(){
-						callback(null);
+					// updateComponentFiles(bundleId, ['COMPONENT'], function(){
+						callback(null, bundleId);
 					});
 				}
 			], function(err, result){
+				console.log('Starting deletion of files');
 				//TODO how can I arrange this so I can call delete folder just once?
 				deleteFolderRecursive(process.cwd() + "/strike-components");
 			});
@@ -67,6 +69,7 @@ if(resetFlagExists()){
 					});
 				}
 			], function(err, result){
+				console.log('Starting deletion of files');
 				deleteFolderRecursive(process.cwd() + "/strike-components");
 			});
 		}
@@ -130,7 +133,7 @@ function deleteFolderRecursive(path) {
                 deleteFolderRecursive(curPath);
             } else { // delete file
                 fs.unlinkSync(curPath);
-                console.log(curPath + " file was deleted");
+                console.log('deleted ' + curPath);
             }
         });
         fs.rmdirSync(path);
@@ -167,13 +170,13 @@ function downloadComponentFile(componentName, fileType){
 
 	async.waterfall([
 		function requestFile(callback){
-			console.log('requesting the url');
+			console.log('downloading from url');
 			http.get(REPO_BASE_URL + "/" + componentName + "/" + componentName + fileTypeMap[fileType], function(response) {
 				callback(null, response);
 			});
 		},
 		function writeResponseToFile(response, callback){
-			console.log('piping the response');
+			console.log('saving the response');
 			response.pipe(file);
 			var body = '';
 			
@@ -186,7 +189,7 @@ function downloadComponentFile(componentName, fileType){
 			});
 		},
 		function verifyFileContents(body, callback){
-			console.log('checking for 404');
+			// console.log('checking for 404');
 			if(body == '404: Not Found\n'){
 				//if we find out later that the file is actually a 404, we go and delete the file since it wont save to Salesforce
 				fs.unlinkSync(process.cwd() + "/strike-components/" + componentName + "/" + componentName + fileTypeMap[fileType]);
@@ -316,35 +319,79 @@ function updateComponentFiles(bundleId, defTypeArray, callback){
 		RENDERER: 'Renderer.js'
 	};
 
-	defTypeArray.forEach(function(defType){
-		async.waterfall([
-			function queryFileIdByDefType(callback){
-				conn.tooling.query("Select Id, AuraDefinitionBundleId, DefType FROM AuraDefinition WHERE AuraDefinitionBundleId ='" + bundleId + "'" + "AND DefType ='"+ defType + "'", function(err, res){
-					if (err) { return console.error(chalk.red(err)); }
-					var fileId = res.records[0].Id;
-					callback(null, fileId);
-				});
-			},
-			function readFile(fileId, callback){
-				fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + defTypeMap[defType], 'utf8', function(err, contents){
-					console.log(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + defTypeMap[defType] + " file has been read!");
-					if (err) { return console.error(chalk.yellow(defType + ' file not found. Not updating.')); }
-					var fileContent = contents;
-					callback(null, fileId, fileContent);
-				});
-			},
-			function deployFile(fileId, fileContent, callback){
-				conn.tooling.sobject('AuraDefinition').update({Id: fileId, Source: fileContent}, function(err, res){
-					if (err) { return console.error(err); }
-					console.log(defType + ' has been updated');
-					callback(null);
-				});
-			}
-		], function(err, result){
+	async.each(defTypeArray,
+		function (defType, callbackX){
+			async.waterfall([
+				function queryFileIdByDefType(next){
+					conn.tooling.query("Select Id, AuraDefinitionBundleId, DefType FROM AuraDefinition WHERE AuraDefinitionBundleId ='" + bundleId + "'" + "AND DefType ='"+ defType + "'", function(err, res){
+						if (err) { return console.error(chalk.red(err)); }
+						var fileId = res.records[0].Id;
+						next(null, fileId);
+					});
+				},
+				function readFile(fileId, next){
+					fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + defTypeMap[defType], 'utf8', function(err, contents){
+						console.log("reading file " + process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + defTypeMap[defType]);
+						var fileContent = contents;
+						next(null, fileId, fileContent);
+					});
+				},
+				function deployFile(fileId, fileContent, next){
+					conn.tooling.sobject('AuraDefinition').update({Id: fileId, Source: fileContent}, function(err, res){
+						if (err) { 
+							console.error(err); 
+							next(null, defType);
+						} else {
+							console.log('we depoloyed ' + defType + ' has been updated');
+							next(null, defType);	
+						}
+					});
+				}
+			], function(err, result){
+				if (err) { return console.error(chalk.red(err)); }
+				// console.log('waterfall ended for ' + defType);
+				callbackX();
+			}) ;
+		}, 
+		
+		function(err){
 			if (err) { return console.error(chalk.red(err)); }
-			console.log('all done with updating');
-		});
-	});
+			console.log('async for each has finsished');
+			callback();
+		}
+	);
+
+	// defTypeArray.forEach(function(defType){
+	// 	async.waterfall([
+	// 		function queryFileIdByDefType(callback){
+	// 			conn.tooling.query("Select Id, AuraDefinitionBundleId, DefType FROM AuraDefinition WHERE AuraDefinitionBundleId ='" + bundleId + "'" + "AND DefType ='"+ defType + "'", function(err, res){
+	// 				if (err) { return console.error(chalk.red(err)); }
+	// 				var fileId = res.records[0].Id;
+	// 				callback(null, fileId);
+	// 			});
+	// 		},
+	// 		function readFile(fileId, callback){
+	// 			fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + defTypeMap[defType], 'utf8', function(err, contents){
+	// 				console.log("reading file " + process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + defTypeMap[defType]);
+	// 				if (err) { return console.error(chalk.yellow(defType + ' could not read file')); }
+	// 				var fileContent = contents;
+	// 				callback(null, fileId, fileContent);
+	// 			});
+	// 		},
+	// 		function deployFile(fileId, fileContent, callback){
+	// 			conn.tooling.sobject('AuraDefinition').update({Id: fileId, Source: fileContent}, function(err, res){
+	// 				if (err) { return console.error(err); }
+	// 				console.log('we depoloyed ' + defType + ' has been updated');
+	// 				callback(null, defType);
+	// 			});
+	// 		}
+	// 	], function(err, result){
+	// 		if (err) { return console.error(chalk.red(err)); }
+	// 		console.log('waterfall ended for ' + defType);
+	// 		callback();
+	// 	});
+	// });
+	
 }
 
 function createComponentHelper(bundleId, inputArgs){
