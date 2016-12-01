@@ -12,7 +12,7 @@ var async = require('async');
 
 var REPO_BASE_URL = "https://raw.githubusercontent.com/appiphony/Strike-Components/master/components";
 
-var FILE_TYPE_MAP = {
+var fileTypeMap = {
 		COMPONENT: '.cmp',
 		CONTROLLER: 'Controller.js',
 		HELPER: 'Helper.js',
@@ -30,7 +30,7 @@ if(resetFlagExists()){
 	intializeDatabase();
 	drawScreen();
 	createStrikeComponentFolder();
-	downloadTargetComponents(targetComponent);
+	downloadTargetComponents([targetComponent]);
 	prompt.start();
 	async.waterfall([
 		function getUserInput(callback){
@@ -138,14 +138,17 @@ function deleteFolderRecursive(path) {
 }
 
 function downloadTargetComponents(targetComponents){
-	if(Array.isArray(targetComponents)){
-		targetComponents.forEach(function(componentName){
-			downloadComponentBundle(componentName);
-		});
-	} else {
-		downloadComponentBundle(targetComponents);
-		// downloadComponentBundle(targetComponents, ['COMPONENT', 'CONTROLLER', 'HELPER', 'RENDERER']);
-	}
+	targetComponents.forEach(function(componentName){
+		downloadComponentBundle(componentName);
+	});
+	// if(Array.isArray(targetComponents)){
+	// 	targetComponents.forEach(function(componentName){
+	// 		downloadComponentBundle(componentName);
+	// 	});
+	// } else {
+	// 	downloadComponentBundle(targetComponents);
+	// 	// downloadComponentBundle(targetComponents, ['COMPONENT', 'CONTROLLER', 'HELPER', 'RENDERER']);
+	// }
 }
 
 function downloadComponentBundle(componentName){
