@@ -320,38 +320,38 @@ function updateComponentFiles(bundleId, defTypeArray, callback){
 	};
 
 	async.each(defTypeArray,
-		function (defType, callbackX){
+		function (defType, callback){
 			async.waterfall([
-				function queryFileIdByDefType(next){
+				function queryFileIdByDefType(callback){
 					conn.tooling.query("Select Id, AuraDefinitionBundleId, DefType FROM AuraDefinition WHERE AuraDefinitionBundleId ='" + bundleId + "'" + "AND DefType ='"+ defType + "'", function(err, res){
 						if (err) { return console.error(chalk.red(err)); }
 						var fileId = res.records[0].Id;
-						next(null, fileId);
+						callback(null, fileId);
 					});
 				},
-				function readFile(fileId, next){
+				function readFile(fileId, callback){
 					fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + defTypeMap[defType], 'utf8', function(err, contents){
 						console.log("reading file " + process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + defTypeMap[defType]);
 						var fileContent = contents;
-						next(null, fileId, fileContent);
+						callback(null, fileId, fileContent);
 					});
 				},
-				function deployFile(fileId, fileContent, next){
+				function deployFile(fileId, fileContent, callback){
 					conn.tooling.sobject('AuraDefinition').update({Id: fileId, Source: fileContent}, function(err, res){
 						if (err) { 
 							console.error(err); 
-							next(null, defType);
+							callback(null, defType);
 						} else {
 							console.log('we depoloyed ' + defType + ' has been updated');
-							next(null, defType);	
+							callback(null, defType);	
 						}
 					});
 				}
 			], function(err, result){
 				if (err) { return console.error(chalk.red(err)); }
 				// console.log('waterfall ended for ' + defType);
-				callbackX();
-			}) ;
+				callback();
+			});
 		}, 
 		
 		function(err){
