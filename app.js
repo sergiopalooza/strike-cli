@@ -73,37 +73,14 @@ if(resetFlagExists()){
 	});
 }
 
-function intializeDatabase (){
-	db.defaults({ credentials: []})
-		.value();	
-}
-
 function resetFlagExists() {
+
 	return process.argv[2] == '-reset' || process.argv[2] == '-r';
 }
 
-function configurePromptSchema(){
-	if(!credentialsExist()){
-		prompt.message = 'Strike-CLI';
-		var promptSchema = {
-			properties: {
-				username: {
-					description: 'Username'
-				},
-				password: {
-					description: 'Password',
-					hidden: true
-				}
-			}
-		};
-		return promptSchema;
-	} else {
-		return {properties:{}};	//will not prompt user for any questions
-	}
-}
-
-function credentialsExist(){
-	return db.get('credentials').find({ id: 1 }).value() != undefined
+function intializeDatabase (){
+	db.defaults({ credentials: []})
+		.value();	
 }
 
 function drawScreen(){
@@ -118,23 +95,6 @@ function drawScreen(){
 function createStrikeComponentFolder(){
 	deleteFolderRecursive(process.cwd() + "/strike-components"); //uncomment if you want to create the folder everytime
 	fs.existsSync(process.cwd() + "/strike-components") || fs.mkdirSync(process.cwd() + "/strike-components");	
-}
-
-function deleteFolderRecursive(path) {
-    var files = [];
-    if( fs.existsSync(path) ) {
-        files = fs.readdirSync(path);
-        files.forEach(function(file,index){
-            var curPath = path + "/" + file;
-            if(fs.lstatSync(curPath).isDirectory()) { // recurse
-                deleteFolderRecursive(curPath);
-            } else { // delete file
-                fs.unlinkSync(curPath);
-                console.log('deleted ' + curPath);
-            }
-        });
-        fs.rmdirSync(path);
-    }
 }
 
 function downloadTargetComponents(targetComponents){
@@ -157,11 +117,6 @@ function downloadComponentBundle(componentName){
 	downloadComponentFile(componentName, 'CONTROLLER');
 	downloadComponentFile(componentName, 'HELPER');
 	downloadComponentFile(componentName, 'RENDERER');
-
-	// downloadComponentFile(componentName, 'component');
-	// downloadComponentFile(componentName, 'controller');
-	// downloadComponentFile(componentName, 'helper');
-	// downloadComponentFile(componentName, 'renderer');
 }
 
 function downloadComponentFile(componentName, fileType){
@@ -206,16 +161,37 @@ function doesComponentFolderExist(){
 	return fs.existsSync(process.cwd() + "/strike-components"); 
 }
 
+function configurePromptSchema(){
+	if(!credentialsExist()){
+		prompt.message = 'Strike-CLI';
+		var promptSchema = {
+			properties: {
+				username: {
+					description: 'Username'
+				},
+				password: {
+					description: 'Password',
+					hidden: true
+				}
+			}
+		};
+		return promptSchema;
+	} else {
+		return {properties:{}};	//will not prompt user for any questions
+	}
+}
+
+function credentialsExist(){
+
+	return db.get('credentials').find({ id: 1 }).value() != undefined
+}
 
 function createUserInputObj(promptResponse){
 	var userInputObj = {
 		username: promptResponse.username || db.get('credentials').find({ id: 1 }).value().username,
 		password: promptResponse.password || db.get('credentials').find({ id: 1 }).value().password,
-		// username: promptResponse.username || process.env.SF_STRIKE_USERNAME, //uncomment for faster development
-		// password: promptResponse.password || process.env.SF_STRIKE_PASSWORD, //uncomment for faster development
 		bundleInfo: {
 			name: process.argv[2],
-			// name: promptResponse.inputComponentName || generateRandomComponentName(), //uncomment for faster development
 			description: promptResponse.inputDescription || 'I was created from Strike-CLI'
 		}
 	};
@@ -226,6 +202,23 @@ function saveUserInput(username, password){
 	db.get('credentials')
 		.push({ id: 1, username: username, password: password})
 		.value();	
+}
+
+function deleteFolderRecursive(path) {
+    var files = [];
+    if( fs.existsSync(path) ) {
+        files = fs.readdirSync(path);
+        files.forEach(function(file,index){
+            var curPath = path + "/" + file;
+            if(fs.lstatSync(curPath).isDirectory()) { // recurse
+                deleteFolderRecursive(curPath);
+            } else { // delete file
+                fs.unlinkSync(curPath);
+                console.log('deleted ' + curPath);
+            }
+        });
+        fs.rmdirSync(path);
+    }
 }
 
 function bundleExists(response){
@@ -239,10 +232,7 @@ function createAuraDefinitionBundle(inputArgs, callback){
 	  	MasterLabel: inputArgs.name, 
 	  	ApiVersion:'32.0'
 	}, 	function(err, res){
-		if (err) { 
-
-			return console.error(err); 
-		}
+		if (err) { return console.error(err); }
 		console.log(inputArgs.name + ' Bundle has been created');
 		// console.log(res);
 
@@ -310,48 +300,6 @@ function createComponentController(bundleId, inputArgs){
 	});
 }
 
-function updateComponentFiles(bundleId, defTypeArray, callback){
-	async.each(defTypeArray,
-		function (defType, callback){
-			async.waterfall([
-				function queryFileIdByDefType(callback){
-					conn.tooling.query("Select Id, AuraDefinitionBundleId, DefType FROM AuraDefinition WHERE AuraDefinitionBundleId ='" + bundleId + "'" + "AND DefType ='"+ defType + "'", function(err, res){
-						if (err) { return console.error(chalk.red(err)); }
-						var fileId = res.records[0].Id;
-						callback(null, fileId);
-					});
-				},
-				function readFile(fileId, callback){
-					fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + fileTypeMap[defType], 'utf8', function(err, contents){
-						console.log("reading file " + process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + fileTypeMap[defType]);
-						var fileContent = contents;
-						callback(null, fileId, fileContent);
-					});
-				},
-				function deployFile(fileId, fileContent, callback){
-					conn.tooling.sobject('AuraDefinition').update({Id: fileId, Source: fileContent}, function(err, res){
-						if (err) { 
-							console.error(err); 
-							callback(null, defType);
-						} else {
-							console.log('we depoloyed ' + defType + ' has been updated');
-							callback(null, defType);	
-						}
-					});
-				}
-			], function(err, result){
-				if (err) { return console.error(chalk.red(err)); }
-				callback();
-			});
-		}, 		
-		function(err){
-			if (err) { return console.error(chalk.red(err)); }
-			console.log('async for each has finsished');
-			callback();
-		}
-	);
-}
-
 function createComponentHelper(bundleId, inputArgs){
 	fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + 'Helper.js', 'utf8', function(err, contents){
 		if(err){
@@ -392,6 +340,48 @@ function createComponentRenderer(bundleId, inputArgs){
 		  console.log(inputArgs.name + ' Renderer has been created');
 		});
 	});
+}
+
+function updateComponentFiles(bundleId, defTypeArray, callback){
+	async.each(defTypeArray,
+		function (defType, callback){
+			async.waterfall([
+				function queryFileIdByDefType(callback){
+					conn.tooling.query("Select Id, AuraDefinitionBundleId, DefType FROM AuraDefinition WHERE AuraDefinitionBundleId ='" + bundleId + "'" + "AND DefType ='"+ defType + "'", function(err, res){
+						if (err) { return console.error(chalk.red(err)); }
+						var fileId = res.records[0].Id;
+						callback(null, fileId);
+					});
+				},
+				function readFile(fileId, callback){
+					fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + fileTypeMap[defType], 'utf8', function(err, contents){
+						console.log("reading file " + process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + fileTypeMap[defType]);
+						var fileContent = contents;
+						callback(null, fileId, fileContent);
+					});
+				},
+				function deployFile(fileId, fileContent, callback){
+					conn.tooling.sobject('AuraDefinition').update({Id: fileId, Source: fileContent}, function(err, res){
+						if (err) { 
+							console.error(err); 
+							callback(null, defType);
+						} else {
+							console.log('we depoloyed ' + defType + ' has been updated');
+							callback(null, defType);	
+						}
+					});
+				}
+			], function(err, result){
+				if (err) { return console.error(chalk.red(err)); }
+				callback();
+			});
+		}, 		
+		function(err){
+			if (err) { return console.error(chalk.red(err)); }
+			console.log('async for each has finsished');
+			callback();
+		}
+	);
 }
 
 function generateRandomComponentName(){
