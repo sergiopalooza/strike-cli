@@ -18,8 +18,9 @@ if(resetFlagExists()){
 	fs.unlinkSync(process.cwd() + "/db.json");
 	console.log('Configuration file reset');
 } else {
-	intializeDatabase();
 	var targetComponent = process.argv[2];
+
+	intializeDatabase();
 	drawScreen();
 	createStrikeComponentFolder();
 	downloadTargetComponents(targetComponent);
@@ -74,14 +75,6 @@ if(resetFlagExists()){
 function intializeDatabase (){
 	db.defaults({ credentials: []})
 		.value();	
-}
-
-function addFlagExists() {
-	return process.argv[2] == '-add' || process.argv[2] == '-a';
-}
-
-function setFlagExists() {
-	return process.argv[2] == '-set' || process.argv[2] == '-s';
 }
 
 function resetFlagExists() {
@@ -322,64 +315,35 @@ function updateComponentFiles(bundleId, defTypeArray, callback){
 		RENDERER: 'Renderer.js'
 	};
 
-	// async.each(defTypeArray,
-	// 	function(defType, callback1){
-	// 		conn.tooling.query("Select Id, AuraDefinitionBundleId, DefType FROM AuraDefinition WHERE AuraDefinitionBundleId ='" + bundleId + "'" + "AND DefType ='"+ defType + "'", function(err, res){
-	// 			var fileId = res.records[0].Id;
-	// 			fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + defTypeMap[defType], 'utf8', function(err, contents){
-	// 				console.log(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + defTypeMap[defType] + " file has been read!");
-	// 				if(err){
-	// 					console.log(defType + ' file not found. Not updating.');
-	// 					callback1();
-	// 				} else {
-	// 					var fileContent = contents;
-	// 					conn.tooling.sobject('AuraDefinition').update({
-	// 						Id: fileId,
-	// 					    Source: fileContent
-	// 					  }, function(err, res) {
-	// 					  if (err) { return console.error(err); }
-	// 					  console.log(defType + ' has been updated');
-	// 					  callback1();
-	// 					});	
-	// 				}
-	// 			});
-				
-	// 		});
-	// 	},
-	// 	function(err){
-	// 		//When all async tasks are done
-	// 		console.log("all done!");
-	// 		callback();
-	// 	}
-	// );
-
-
-	var itemsProcessed = 0;
 	defTypeArray.forEach(function(defType){
-		conn.tooling.query("Select Id, AuraDefinitionBundleId, DefType FROM AuraDefinition WHERE AuraDefinitionBundleId ='" + bundleId + "'" + "AND DefType ='"+ defType + "'", function(err, res){
-			var fileId = res.records[0].Id;
-			fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + defTypeMap[defType], 'utf8', function(err, contents){
-				console.log(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + defTypeMap[defType] + " file has been read!");
-				if(err){
-					console.log(defType + ' file not found. Not updating.');
-				} else {
+		async.waterfall([
+			function queryFileIdByDefType(callback){
+				conn.tooling.query("Select Id, AuraDefinitionBundleId, DefType FROM AuraDefinition WHERE AuraDefinitionBundleId ='" + bundleId + "'" + "AND DefType ='"+ defType + "'", function(err, res){
+					if (err) { return console.error(chalk.red(err)); }
+					var fileId = res.records[0].Id;
+					callback(null, fileId);
+				});
+			},
+			function readFile(fileId, callback){
+				fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + defTypeMap[defType], 'utf8', function(err, contents){
+					console.log(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + defTypeMap[defType] + " file has been read!");
+					if (err) { return console.error(chalk.yellow(defType + ' file not found. Not updating.')); }
 					var fileContent = contents;
-					conn.tooling.sobject('AuraDefinition').update({
-						Id: fileId,
-					    Source: fileContent
-					  }, function(err, res) {
-					  if (err) { return console.error(err); }
-					  console.log(defType + ' has been updated');
-					});	
-				}
-				//below two lines are needed to run a callback once a forEach loop has finished
-				//Hopefully this hack can be elimintated after implementing an async library
-				itemsProcessed++;
-				if(itemsProcessed == defTypeArray.length) { callback(); }
-			});
+					callback(null, fileId, fileContent);
+				});
+			},
+			function deployFile(fileId, fileContent, callback){
+				conn.tooling.sobject('AuraDefinition').update({Id: fileId, Source: fileContent}, function(err, res){
+					if (err) { return console.error(err); }
+					console.log(defType + ' has been updated');
+					callback(null);
+				});
+			}
+		], function(err, result){
+			if (err) { return console.error(chalk.red(err)); }
+			console.log('all done with updating');
 		});
 	});
-	// callback();
 }
 
 function createComponentHelper(bundleId, inputArgs){
@@ -438,4 +402,12 @@ function generateRandomComponentName(){
 
 function downloadFlagExists() {
 	return process.argv[2] == '-download' || process.argv[2] == '-d';
+}
+
+function addFlagExists() {
+	return process.argv[2] == '-add' || process.argv[2] == '-a';
+}
+
+function setFlagExists() {
+	return process.argv[2] == '-set' || process.argv[2] == '-s';
 }
