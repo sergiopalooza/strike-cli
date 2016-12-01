@@ -56,6 +56,7 @@ if(resetFlagExists()){
 					});
 				}
 			], function(err, result){
+				//TODO how can I arrange this so I can call delete folder just once?
 				deleteFolderRecursive(process.cwd() + "/strike-components");
 			});
 		} else {
