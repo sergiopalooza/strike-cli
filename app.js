@@ -12,6 +12,13 @@ var async = require('async');
 
 var REPO_BASE_URL = "https://raw.githubusercontent.com/appiphony/Strike-Components/master/components";
 
+var FILE_TYPE_MAP = {
+		COMPONENT: '.cmp',
+		CONTROLLER: 'Controller.js',
+		HELPER: 'Helper.js',
+		RENDERER: 'Renderer.js'
+	};
+
 var conn = new jsforce.Connection();
 
 if(resetFlagExists()){
@@ -26,7 +33,7 @@ if(resetFlagExists()){
 	downloadTargetComponents(targetComponent);
 	prompt.start();
 	async.waterfall([
-		function getUserInputX(callback){
+		function getUserInput(callback){
 			prompt.get(configurePromptSchema(), function (err, res){
 				if (err) { return console.error(chalk.red(err)); }
 				var userInput = createUserInputObj(res);
@@ -60,7 +67,7 @@ if(resetFlagExists()){
 					});
 				}
 			}
-		], function(err, result){
+		], function deleteStrikeComponentFolder(err, result){
 			deleteFolderRecursive(process.cwd() + "/strike-components");
 		});
 	});
@@ -137,25 +144,24 @@ function downloadTargetComponents(targetComponents){
 		});
 	} else {
 		downloadComponentBundle(targetComponents);
+		// downloadComponentBundle(targetComponents, ['COMPONENT', 'CONTROLLER', 'HELPER', 'RENDERER']);
 	}
 }
 
 function downloadComponentBundle(componentName){
 	fs.mkdirSync(process.cwd() + "/strike-components/" + componentName);
-	downloadComponentFile(componentName, 'component');
-	downloadComponentFile(componentName, 'controller');
-	downloadComponentFile(componentName, 'helper');
-	downloadComponentFile(componentName, 'renderer');
+	downloadComponentFile(componentName, 'COMPONENT');
+	downloadComponentFile(componentName, 'CONTROLLER');
+	downloadComponentFile(componentName, 'HELPER');
+	downloadComponentFile(componentName, 'RENDERER');
+
+	// downloadComponentFile(componentName, 'component');
+	// downloadComponentFile(componentName, 'controller');
+	// downloadComponentFile(componentName, 'helper');
+	// downloadComponentFile(componentName, 'renderer');
 }
 
 function downloadComponentFile(componentName, fileType){
-	var fileTypeMap = {
-		component: '.cmp',
-		controller: 'Controller.js',
-		helper: 'Helper.js',
-		renderer: 'Renderer.js'
-	};
-
 	var file = fs.createWriteStream(process.cwd() + "/strike-components/" + componentName + "/" + componentName + fileTypeMap[fileType], {flags: 'w', mode: 0755});
 
 	async.waterfall([
@@ -302,13 +308,6 @@ function createComponentController(bundleId, inputArgs){
 }
 
 function updateComponentFiles(bundleId, defTypeArray, callback){
-	var defTypeMap = {
-		COMPONENT: '.cmp',
-		CONTROLLER: 'Controller.js',
-		HELPER: 'Helper.js',
-		RENDERER: 'Renderer.js'
-	};
-
 	async.each(defTypeArray,
 		function (defType, callback){
 			async.waterfall([
@@ -320,8 +319,8 @@ function updateComponentFiles(bundleId, defTypeArray, callback){
 					});
 				},
 				function readFile(fileId, callback){
-					fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + defTypeMap[defType], 'utf8', function(err, contents){
-						console.log("reading file " + process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + defTypeMap[defType]);
+					fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + fileTypeMap[defType], 'utf8', function(err, contents){
+						console.log("reading file " + process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + fileTypeMap[defType]);
 						var fileContent = contents;
 						callback(null, fileId, fileContent);
 					});
