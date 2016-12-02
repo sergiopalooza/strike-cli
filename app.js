@@ -75,7 +75,7 @@ if(resetFlagExists()){
 
 function resetFlagExists() {
 
-	return process.argv[2] == '-reset' || process.argv[2] == '-r';
+	return process.argv[2] == 'reset' || process.argv[2] == '-r';
 }
 
 function intializeDatabase (){
@@ -222,6 +222,7 @@ function deleteFolderRecursive(path) {
 }
 
 function bundleExists(response){
+
 	return response.records.length > 0;
 }
 
