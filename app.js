@@ -10,7 +10,7 @@ var low = require('lowdb');
 var db = low('db.json');
 var async = require('async');
 
-var REPO_BASE_URL = "https://raw.githubusercontent.com/appiphony/Strike-Components/master/components";
+const REPO_BASE_URL = "https://raw.githubusercontent.com/appiphony/Strike-Components/master/components";
 
 var fileTypeMap = {
 		COMPONENT: '.cmp',
@@ -124,13 +124,13 @@ function downloadComponentFile(componentName, fileType){
 
 	async.waterfall([
 		function requestFile(callback){
-			console.log('downloading from url');
+			console.log('downloading from url!');
 			http.get(REPO_BASE_URL + "/" + componentName + "/" + componentName + fileTypeMap[fileType], function(response) {
 				callback(null, response);
 			});
 		},
 		function writeResponseToFile(response, callback){
-			console.log('saving the response');
+			// console.log('saving the response');
 			response.pipe(file);
 			var body = '';
 			
@@ -172,12 +172,19 @@ function configurePromptSchema(){
 				password: {
 					description: 'Password',
 					hidden: true
+				},
+				componentName: {
+					description: 'Component Name'
 				}
 			}
 		};
 		return promptSchema;
 	} else {
-		return {properties:{}};	//will not prompt user for any questions
+		return {properties:{
+			componentName: {
+					description: 'Component Name'
+				}
+		}};	//will not prompt user for any questions
 	}
 }
 
@@ -191,7 +198,7 @@ function createUserInputObj(promptResponse){
 		username: promptResponse.username || db.get('credentials').find({ id: 1 }).value().username,
 		password: promptResponse.password || db.get('credentials').find({ id: 1 }).value().password,
 		bundleInfo: {
-			name: process.argv[2],
+			name: promptResponse.componentName || process.argv[2],
 			description: promptResponse.inputDescription || 'I was created from Strike-CLI'
 		}
 	};
