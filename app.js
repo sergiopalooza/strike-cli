@@ -35,26 +35,9 @@ if(resetFlagExists()){
 	downloadTargetComponents([targetComponent]);
 	prompt.start();
 	async.waterfall([
-		function getUserInput(callback){
-			prompt.get(configurePromptSchema(), function (err, res){
-				if (err) { return console.error(chalk.red(err)); }
-				var userInput = createUserInputObj(res);
-				callback(null, userInput);
-			});	
-		},
-		function login(userInput, callback){
-			conn.login(userInput.username, userInput.password, function(err, res) {
-				if (err) { return console.error(chalk.red(err)); }
-				saveUserInput(userInput.username, userInput.password); //comment this if you dont want to capture credentials
-				callback(null, userInput);
-			});
-		},
-		function queryForExistingBundle(userInput, callback){
-			conn.tooling.query("Select Id, DeveloperName FROM AuraDefinitionBundle WHERE DeveloperName ='" + process.argv[2] + "'", function(err, res){
-				if (err) { return console.error(chalk.red(err)); }
-				callback(null, {queryResult: res, userInput: userInput});
-			});
-		},
+		getUserInput,
+		login,
+		queryForExistingBundle,
 	], function(err, result){
 		async.waterfall([
 			function upsertComponentFiles(callback){
@@ -74,6 +57,44 @@ if(resetFlagExists()){
 		});
 	});
 }
+
+function getUserInput(callback){
+	prompt.get(configurePromptSchema(), function (err, res){
+		if (err) { return console.error(chalk.red(err)); }
+		var userInput = createUserInputObj(res);
+		callback(null, userInput);
+	});	
+}
+
+function login(userInput, callback){
+	conn.login(userInput.username, userInput.password, function(err, res) {
+		if (err) { return console.error(chalk.red(err)); }
+		saveUserInput(userInput.username, userInput.password); //comment this if you dont want to capture credentials
+		callback(null, userInput);
+	});
+}
+
+function queryForExistingBundle(userInput, callback){
+	conn.tooling.query("Select Id, DeveloperName FROM AuraDefinitionBundle WHERE DeveloperName ='" + process.argv[2] + "'", function(err, res){
+		if (err) { return console.error(chalk.red(err)); }
+		callback(null, {queryResult: res, userInput: userInput});
+	});
+}
+
+function upsertComponentFiles(callback){
+	if (bundleExists(result.queryResult)){
+		var bundleId = result.queryResult.records[0].Id;
+		updateComponentFiles(bundleId, ['COMPONENT', 'CONTROLLER', 'HELPER', 'RENDERER'], function(){
+			callback(null);
+		});
+	} else {
+		createAuraDefinitionBundle(result.userInput.bundleInfo, function(){
+			callback(null);
+		});
+	}
+}
+
+
 
 function resetFlagExists() {
 
