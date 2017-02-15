@@ -75,7 +75,7 @@ function login(userInput, callback){
 }
 
 function queryForExistingBundle(userInput, callback){
-	conn.tooling.query("Select Id, DeveloperName FROM AuraDefinitionBundle WHERE DeveloperName ='" + process.argv[2] + "'", function(err, res){
+	conn.tooling.query("Select Id, DeveloperName FROM AuraDefinitionBundle WHERE DeveloperName ='" + userInput.bundleInfo.name + "'", function(err, res){
 		if (err) { return console.error(chalk.red(err)); }
 		callback(null, {queryResult: res, userInput: userInput});
 	});
