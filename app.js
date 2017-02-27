@@ -10,9 +10,9 @@ var low = require('lowdb');
 var db = low('db.json');
 var async = require('async');
 
-const REPO_BASE_URL = "https://raw.githubusercontent.com/appiphony/Strike-Components/master/components";
+const REPO_BASE_URL = "https://raw.githubusercontent.com/appiphony/Strike-Components/master/aura";
 
-var isDev = false;
+var isDev = true;
 
 var fileTypeMap = {
 		COMPONENT: '.cmp',
@@ -59,6 +59,7 @@ if(resetFlagExists()){
 }
 
 function getUserInput(callback){
+	console.log('we are in getUserInput');
 	prompt.get(configurePromptSchema(), function (err, res){
 		if (err) { return console.error(chalk.red(err)); }
 		var userInput = createUserInputObj(res);
