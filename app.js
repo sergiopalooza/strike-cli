@@ -18,7 +18,8 @@ var fileTypeMap = {
 		COMPONENT: '.cmp',
 		CONTROLLER: 'Controller.js',
 		HELPER: 'Helper.js',
-		RENDERER: 'Renderer.js'
+		RENDERER: 'Renderer.js',
+		EVENT: '.evt'
 	};
 
 var conn = new jsforce.Connection();
@@ -45,6 +46,27 @@ if(resetFlagExists()){
 						callback(null);
 					});
 				} else {
+					// var bundlesToCreate = ['strike_evt_modalHidden', 'strike_evt_modalHide', 'strike_evt_modalShown', 'strike_evt_modalShow', 'strike_modal'];
+
+					// async.eachSeries(bundlesToCreate, function(bundle, callback){
+					// 	var tmpBundleInfo = {
+					// 		name: bundle, // my description
+	  		// 				description: bundle
+					// 	};
+
+					// 	createAuraDefinitionBundle(tmpBundleInfo, function(){
+					// 		callback(null);
+					// 	)};						
+					// }, function(err){
+					// 	if( err ) {
+					//       // One of the iterations produced an error.
+					//       // All processing will now stop.
+					//       console.log('A file failed to process');
+					//     } else {
+					//       console.log('All files have been processed successfully');
+					//     }
+					// })
+
 					createAuraDefinitionBundle(result.userInput.bundleInfo, function(){
 						callback(null);
 					});
@@ -81,18 +103,18 @@ function queryForExistingBundle(userInput, callback){
 	});
 }
 
-function upsertComponentFiles(callback){
-	if (bundleExists(result.queryResult)){
-		var bundleId = result.queryResult.records[0].Id;
-		updateComponentFiles(bundleId, ['COMPONENT', 'CONTROLLER', 'HELPER', 'RENDERER'], function(){
-			callback(null);
-		});
-	} else {
-		createAuraDefinitionBundle(result.userInput.bundleInfo, function(){
-			callback(null);
-		});
-	}
-}
+// function upsertComponentFiles(callback){
+// 	if (bundleExists(result.queryResult)){
+// 		var bundleId = result.queryResult.records[0].Id;
+// 		updateComponentFiles(bundleId, ['COMPONENT', 'CONTROLLER', 'HELPER', 'RENDERER'], function(){
+// 			callback(null);
+// 		});
+// 	} else {
+// 		createAuraDefinitionBundle(result.userInput.bundleInfo, function(){
+// 			callback(null);
+// 		});
+// 	}
+// }
 
 
 
@@ -123,6 +145,7 @@ function createStrikeComponentFolder(){
 function downloadTargetComponents(callback, targetComponents){
 	log('we are downloading components');
 	var targetComponents = [process.argv[2]];
+	// var targetComponents = ['strike_evt_modalHidden', 'strike_evt_modalHide', 'strike_evt_modalShown', 'strike_evt_modalShow', 'strike_modal'];
 	targetComponents.forEach(function(componentName){
 		downloadComponentBundle(componentName);
 	});
@@ -143,6 +166,7 @@ function downloadComponentBundle(componentName){
 	downloadComponentFile(componentName, 'CONTROLLER');
 	downloadComponentFile(componentName, 'HELPER');
 	downloadComponentFile(componentName, 'RENDERER');
+	downloadComponentFile(componentName, 'EVENT');
 }
 
 function downloadComponentFile(componentName, fileType){
@@ -265,12 +289,22 @@ function createAuraDefinitionBundle(inputArgs, callback){
 
 		var bundleId = res.id;
 
-		createComponentCMP(bundleId, inputArgs);
-		createComponentController(bundleId, inputArgs);
-		createComponentHelper(bundleId, inputArgs);
-		createComponentRenderer(bundleId, inputArgs);
+		if(isEvent(inputArgs.name)){
+			createComponentEVT(bundleId, inputArgs);	
+		} else {
+			createComponentCMP(bundleId, inputArgs);
+			createComponentController(bundleId, inputArgs);
+			createComponentHelper(bundleId, inputArgs);
+			createComponentRenderer(bundleId, inputArgs);
+		}
+		
 		callback(); //if the files end up being deleted before we read them then look here first when debugging
 	});
+}
+
+function isEvent(name){
+	
+	return name.substring(0,10) === 'strike_evt';
 }
 
 function createApplication(bundleId){
@@ -302,6 +336,27 @@ function createComponentCMP(bundleId, inputArgs){
 		  }, function(err, res) {
 		  if (err) { return console.error(err); }
 		  console.log(inputArgs.name + ' CMP has been created');
+		});
+	});
+}
+
+function createComponentEVT(bundleId, inputArgs){
+	fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + '.evt', 'utf8', function(err, contents){
+		if(err){
+			console.log('evt file not found. Falling back on default');
+			var evtContent = '<aura:event type="APPLICATION" description="Event template" />';
+		} else {
+			var evtContent = contents;
+		}
+		
+		conn.tooling.sobject('AuraDefinition').create({
+			AuraDefinitionBundleId: bundleId,
+		    DefType: 'EVENT',
+		    Format: 'XML',
+		    Source: evtContent
+		  }, function(err, res) {
+		  if (err) { return console.error(err); }
+		  console.log(inputArgs.name + ' EVT has been created');
 		});
 	});
 }
