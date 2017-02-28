@@ -27,14 +27,12 @@ if(resetFlagExists()){
 	fs.unlinkSync(process.cwd() + "/db.json");
 	console.log('Configuration file reset');
 } else {
-	var targetComponent = process.argv[2];
-
 	intializeDatabase();
 	drawScreen();
 	createStrikeComponentFolder();
-	downloadTargetComponents([targetComponent]);
 	prompt.start();
 	async.waterfall([
+		downloadTargetComponents,
 		getUserInput,
 		login,
 		queryForExistingBundle,
@@ -59,7 +57,7 @@ if(resetFlagExists()){
 }
 
 function getUserInput(callback){
-	console.log('we are in getUserInput');
+	log('we are in getUserInput');
 	prompt.get(configurePromptSchema(), function (err, res){
 		if (err) { return console.error(chalk.red(err)); }
 		var userInput = createUserInputObj(res);
@@ -68,6 +66,7 @@ function getUserInput(callback){
 }
 
 function login(userInput, callback){
+	log('we are logging in');
 	conn.login(userInput.username, userInput.password, function(err, res) {
 		if (err) { return console.error(chalk.red(err)); }
 		saveUserInput(userInput.username, userInput.password); //comment this if you dont want to capture credentials
@@ -121,10 +120,13 @@ function createStrikeComponentFolder(){
 	fs.existsSync(process.cwd() + "/strike-components") || fs.mkdirSync(process.cwd() + "/strike-components");	
 }
 
-function downloadTargetComponents(targetComponents){
+function downloadTargetComponents(callback, targetComponents){
+	log('we are downloading components');
+	var targetComponents = [process.argv[2]];
 	targetComponents.forEach(function(componentName){
 		downloadComponentBundle(componentName);
 	});
+	callback(null);
 	// if(Array.isArray(targetComponents)){
 	// 	targetComponents.forEach(function(componentName){
 	// 		downloadComponentBundle(componentName);
@@ -196,19 +198,12 @@ function configurePromptSchema(){
 				password: {
 					description: 'Password',
 					hidden: true
-				},
-				componentName: {
-					description: 'Component Name'
 				}
 			}
 		};
 		return promptSchema;
 	} else {
-		return {properties:{
-			componentName: {
-					description: 'Component Name'
-				}
-		}};	//will not prompt user for any questions
+		return {properties:{}};	//will not prompt user for any questions
 	}
 }
 
