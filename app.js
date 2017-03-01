@@ -11,10 +11,19 @@ var db = low('db.json');
 var async = require('async');
 
 const REPO_BASE_URL = "https://raw.githubusercontent.com/appiphony/Strike-Components/master/aura";
+const STATIC_RESOURCE_URL = "https://raw.githubusercontent.com/appiphony/Strike-Components/master/staticresources";
 
 var isDev = true;
 
 var fileTypeMap = {
+		COMPONENT: '.cmp',
+		CONTROLLER: 'Controller.js',
+		HELPER: 'Helper.js',
+		RENDERER: 'Renderer.js',
+		EVENT: '.evt'
+	};
+
+var fileExtensionMap = {
 		COMPONENT: '.cmp',
 		CONTROLLER: 'Controller.js',
 		HELPER: 'Helper.js',
@@ -72,7 +81,7 @@ if(resetFlagExists()){
 					// createStaticResource(function(){
 					// 	callback(null);
 					// });
-					
+
 					createAuraDefinitionBundle(result.userInput.bundleInfo, function(){
 						callback(null);
 					});
@@ -139,6 +148,9 @@ function downloadTargetComponents(callback, targetComponents){
 	// var targetComponents = ['strike_evt_modalHidden', 'strike_evt_modalHide', 'strike_evt_modalShown', 'strike_evt_modalShow', 'strike_modal'];
 	targetComponents.forEach(function(componentName){
 		downloadComponentBundle(componentName);
+		if(componentName == 'strike_chart'){
+			log('we should also download the static resource');
+		}
 	});
 	callback(null);
 	// if(Array.isArray(targetComponents)){
@@ -153,20 +165,63 @@ function downloadTargetComponents(callback, targetComponents){
 
 function downloadComponentBundle(componentName){
 	fs.mkdirSync(process.cwd() + "/strike-components/" + componentName);
-	downloadComponentFile(componentName, 'COMPONENT');
-	downloadComponentFile(componentName, 'CONTROLLER');
-	downloadComponentFile(componentName, 'HELPER');
-	downloadComponentFile(componentName, 'RENDERER');
-	downloadComponentFile(componentName, 'EVENT');
+	// downloadComponentFile(componentName, 'COMPONENT');
+	// downloadComponentFile(componentName, 'CONTROLLER');
+	// downloadComponentFile(componentName, 'HELPER');
+	// downloadComponentFile(componentName, 'RENDERER');
+	// downloadComponentFile(componentName, 'EVENT');
+
+	downloadFile(componentName, 'COMPONENT');
+	downloadFile(componentName, 'CONTROLLER');
+	downloadFile(componentName, 'HELPER');
+	downloadFile(componentName, 'RENDERER');
+	downloadFile(componentName, 'EVENT');
 }
 
-function downloadComponentFile(componentName, fileType){
-	var file = fs.createWriteStream(process.cwd() + "/strike-components/" + componentName + "/" + componentName + fileTypeMap[fileType], {flags: 'w', mode: 0755});
+// function downloadComponentFile(componentName, fileType){
+// 	var file = fs.createWriteStream(process.cwd() + "/strike-components/" + componentName + "/" + componentName + fileTypeMap[fileType], {flags: 'w', mode: 0755});
+
+// 	async.waterfall([
+// 		function requestFile(callback){
+// 			console.log('downloading from url!');
+// 			http.get(REPO_BASE_URL + "/" + componentName + "/" + componentName + fileTypeMap[fileType], function(response) {
+// 				callback(null, response);
+// 			});
+// 		},
+// 		function writeResponseToFile(response, callback){
+// 			// console.log('saving the response');
+// 			response.pipe(file);
+// 			var body = '';
+			
+// 			response.on('data', function(d){
+// 				body += d;
+// 			});
+
+// 			response.on('end', function(){
+// 				callback(null, body)
+// 			});
+// 		},
+// 		function verifyFileContents(body, callback){
+// 			// console.log('checking for 404');
+// 			if(body == '404: Not Found\n'){
+// 				//if we find out later that the file is actually a 404, we go and delete the file since it wont save to Salesforce
+// 				fs.unlinkSync(process.cwd() + "/strike-components/" + componentName + "/" + componentName + fileTypeMap[fileType]);
+// 				console.log(process.cwd() + "/strike-components/" + componentName + "/" + componentName + fileTypeMap[fileType] + " was deleted");
+// 			}		
+// 		}
+// 	], function(err, result){
+// 		if (err) { return console.error(chalk.red(err)); }
+// 		console.log('all done');
+// 	});
+// }
+
+function downloadFile(fileName, fileExtension){
+	var file = fs.createWriteStream(process.cwd() + "/strike-components/" + fileName + "/" + fileName + fileExtensionMap[fileExtension], {flags: 'w', mode: 0755});
 
 	async.waterfall([
 		function requestFile(callback){
 			console.log('downloading from url!');
-			http.get(REPO_BASE_URL + "/" + componentName + "/" + componentName + fileTypeMap[fileType], function(response) {
+			http.get(REPO_BASE_URL + "/" + fileName + "/" + fileName + fileExtensionMap[fileExtension], function(response) {
 				callback(null, response);
 			});
 		},
@@ -187,8 +242,8 @@ function downloadComponentFile(componentName, fileType){
 			// console.log('checking for 404');
 			if(body == '404: Not Found\n'){
 				//if we find out later that the file is actually a 404, we go and delete the file since it wont save to Salesforce
-				fs.unlinkSync(process.cwd() + "/strike-components/" + componentName + "/" + componentName + fileTypeMap[fileType]);
-				console.log(process.cwd() + "/strike-components/" + componentName + "/" + componentName + fileTypeMap[fileType] + " was deleted");
+				fs.unlinkSync(process.cwd() + "/strike-components/" + fileName + "/" + fileName + fileExtensionMap[fileExtension]);
+				console.log(process.cwd() + "/strike-components/" + fileName + "/" + fileName + fileExtensionMap[fileExtension] + " was deleted");
 			}		
 		}
 	], function(err, result){
