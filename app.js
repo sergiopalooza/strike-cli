@@ -157,27 +157,10 @@ function downloadTargetComponents(callback, targetComponents){
 	// var targetComponents = ['strike_evt_modalHidden', 'strike_evt_modalHide', 'strike_evt_modalShown', 'strike_evt_modalShow', 'strike_modal'];
 
 	targetComponents.forEach(function(componentName){
-		if(componentName == 'strike_chart'){
-			log('we should also download the static resource');
-			// downloadFile('d3', 'RESOURCE');
-		}
 		downloadComponentBundle(componentName);
 	});
 	
 	callback(null);
-
-	// if(componentName == 'strike_chart'){
-	// 		log('we should also download the static resource');
-	// 		downloadFile(componentName, 'COMPONENT');
-	// 	}
-	// if(Array.isArray(targetComponents)){
-	// 	targetComponents.forEach(function(componentName){
-	// 		downloadComponentBundle(componentName);
-	// 	});
-	// } else {
-	// 	downloadComponentBundle(targetComponents);
-	// 	// downloadComponentBundle(targetComponents, ['COMPONENT', 'CONTROLLER', 'HELPER', 'RENDERER']);
-	// }
 }
 
 function downloadComponentBundle(componentName){
