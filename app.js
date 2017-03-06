@@ -330,12 +330,12 @@ function createAuraDefinitionBundle(inputArgs, callback){
 		var bundleId = res.id;
 
 		if(isEvent(inputArgs.name)){
-			createComponentEVT(bundleId, inputArgs);	
+			createComponentFile(bundleId, inputArgs, 'EVENT');	
 		} else {
 			createComponentCMP(bundleId, inputArgs);
-			createComponentController(bundleId, inputArgs);
-			createComponentHelper(bundleId, inputArgs);
-			createComponentRenderer(bundleId, inputArgs);
+			createComponentFile(bundleId, inputArgs, 'CONTROLLER');
+			createComponentFile(bundleId, inputArgs, 'HELPER');
+			createComponentFile(bundleId, inputArgs, 'RENDERER');
 		}
 		
 		callback(); //if the files end up being deleted before we read them then look here first when debugging
@@ -419,77 +419,103 @@ function createComponentCMP(bundleId, inputArgs){
 }
 
 
-function createComponentEVT(bundleId, inputArgs){
-	fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + '.evt', 'utf8', function(err, contents){
-		
+var fileFormatMap = {
+		COMPONENT: 'XML',
+		CONTROLLER: 'JS',
+		HELPER: 'JS',
+		RENDERER: 'JS',
+		EVENT: 'XML'
+	};
+
+function createComponentFile(bundleId, inputArgs, type){
+	fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + fileExtensionMap[type], 'utf8', function(err, contents){
 		if(validContent(contents)){
-			var evtContent = contents;
+			log('contents are valid!');
 			conn.tooling.sobject('AuraDefinition').create({
 				AuraDefinitionBundleId: bundleId,
-			    DefType: 'EVENT',
-			    Format: 'XML',
-			    Source: evtContent
-			  }, function(err, res) {
-			  if (err) { return console.error(err); }
-			  console.log(inputArgs.name + ' EVT has been created');
+				DefType: type,
+				Format: fileFormatMap[type],
+				Source: contents
+			}, function(err, res){
+				if (err) { return console.error(err); }
+				console.log(inputArgs.name + type + ' has been created');
 			});
 		}
-	});
+	})
+
 }
 
-function createComponentController(bundleId, inputArgs){
-	fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + 'Controller.js', 'utf8', function(err, contents){
+// function createComponentEVT(bundleId, inputArgs){
+// 	fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + '.evt', 'utf8', function(err, contents){
 		
-		if(validContent(contents)){
-			var controllerContent = contents;
-			conn.tooling.sobject('AuraDefinition').create({
-				AuraDefinitionBundleId: bundleId,
-			    DefType: 'CONTROLLER',
-			    Format: 'JS',
-			    Source: controllerContent
-			  }, function(err, res) {
-			  if (err) { return console.error(err); }
-			  console.log(inputArgs.name + ' Controller has been created');
-			});
-		}
-	});
-}
+// 		if(validContent(contents)){
+// 			var evtContent = contents;
+// 			conn.tooling.sobject('AuraDefinition').create({
+// 				AuraDefinitionBundleId: bundleId,
+// 			    DefType: 'EVENT',
+// 			    Format: 'XML',
+// 			    Source: evtContent
+// 			  }, function(err, res) {
+// 			  if (err) { return console.error(err); }
+// 			  console.log(inputArgs.name + ' EVT has been created');
+// 			});
+// 		}
+// 	});
+// }
 
-function createComponentHelper(bundleId, inputArgs){
-	fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + 'Helper.js', 'utf8', function(err, contents){
+// function createComponentController(bundleId, inputArgs){
+// 	fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + 'Controller.js', 'utf8', function(err, contents){
 		
-		if(validContent(contents)){
-			var helperContent = contents;
-			conn.tooling.sobject('AuraDefinition').create({
-			AuraDefinitionBundleId: bundleId,
-			    DefType: 'HELPER',
-			    Format: 'JS',
-			    Source: helperContent
-			  }, function(err, res) {
-			  if (err) { return console.error(err); }
-			  console.log(inputArgs.name + ' Helper has been created');
-			});
-		}
-	});
-}
+// 		if(validContent(contents)){
+// 			var controllerContent = contents;
+// 			conn.tooling.sobject('AuraDefinition').create({
+// 				AuraDefinitionBundleId: bundleId,
+// 			    DefType: 'CONTROLLER',
+// 			    Format: 'JS',
+// 			    Source: controllerContent
+// 			  }, function(err, res) {
+// 			  if (err) { return console.error(err); }
+// 			  console.log(inputArgs.name + ' Controller has been created');
+// 			});
+// 		}
+// 	});
+// }
 
-function createComponentRenderer(bundleId, inputArgs){
-	fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + 'Renderer.js', 'utf8', function(err, contents){
+// function createComponentHelper(bundleId, inputArgs){
+// 	fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + 'Helper.js', 'utf8', function(err, contents){
 		
-		if(validContent(contents)){
-			var rendererContent = contents;
-			conn.tooling.sobject('AuraDefinition').create({
-			AuraDefinitionBundleId: bundleId,
-			    DefType: 'RENDERER',
-			    Format: 'JS',
-			    Source: rendererContent
-			  }, function(err, res) {
-			  if (err) { return console.error(err); }
-			  console.log(inputArgs.name + ' Renderer has been created');
-			});
-		}
-	});
-}
+// 		if(validContent(contents)){
+// 			var helperContent = contents;
+// 			conn.tooling.sobject('AuraDefinition').create({
+// 			AuraDefinitionBundleId: bundleId,
+// 			    DefType: 'HELPER',
+// 			    Format: 'JS',
+// 			    Source: helperContent
+// 			  }, function(err, res) {
+// 			  if (err) { return console.error(err); }
+// 			  console.log(inputArgs.name + ' Helper has been created');
+// 			});
+// 		}
+// 	});
+// }
+
+// function createComponentRenderer(bundleId, inputArgs){
+// 	fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + 'Renderer.js', 'utf8', function(err, contents){
+		
+// 		if(validContent(contents)){
+// 			var rendererContent = contents;
+// 			conn.tooling.sobject('AuraDefinition').create({
+// 			AuraDefinitionBundleId: bundleId,
+// 			    DefType: 'RENDERER',
+// 			    Format: 'JS',
+// 			    Source: rendererContent
+// 			  }, function(err, res) {
+// 			  if (err) { return console.error(err); }
+// 			  console.log(inputArgs.name + ' Renderer has been created');
+// 			});
+// 		}
+// 	});
+// }
 
 function updateComponentFiles(bundleId, defTypeArray, callback){
 	async.each(defTypeArray,
