@@ -343,13 +343,13 @@ function createStaticResource(name){
 		if(err){
 			log(err);
 		} else {
-			var staticResourceContent = contents;
+			var encodedBody = new Buffer(contents).toString('base64');
 			log('we now have the body');
 		}
 
 		conn.tooling.sobject('StaticResource').create({
-			body: staticResourceContent,
-			ContentType: 'string',
+			body: encodedBody,
+			ContentType: 'text/javascript',
 			CacheControl: 'Public',
 			Name: name
 		}, function(err, res){
@@ -398,6 +398,7 @@ function updateComponentFiles(bundleId, defTypeArray, callback){
 					conn.tooling.query("Select Id, AuraDefinitionBundleId, DefType FROM AuraDefinition WHERE AuraDefinitionBundleId ='" + bundleId + "'" + "AND DefType ='"+ defType + "'", function(err, res){
 						if (err) { return console.error(chalk.red(err)); }
 						var fileId = res.records[0].Id;
+						log('ID: ' + res.records[0].Id);
 						callback(null, fileId);
 					});
 				},
@@ -421,12 +422,13 @@ function updateComponentFiles(bundleId, defTypeArray, callback){
 				}
 			], function(err, result){
 				if (err) { return console.error(chalk.red(err)); }
+				log('we are in the last part of the waterfall');
 				callback();
 			});
 		}, 		
 		function(err){
 			if (err) { return console.error(chalk.red(err)); }
-			console.log('async for each has finsished');
+			console.log('async forEach has finsished');
 			callback();
 		}
 	);
