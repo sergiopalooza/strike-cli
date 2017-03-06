@@ -15,14 +15,6 @@ const STATIC_RESOURCE_URL = "https://raw.githubusercontent.com/appiphony/Strike-
 
 var isDev = true;
 
-var fileTypeMap = {
-		COMPONENT: '.cmp',
-		CONTROLLER: 'Controller.js',
-		HELPER: 'Helper.js',
-		RENDERER: 'Renderer.js',
-		EVENT: '.evt'
-	};
-
 var fileExtensionMap = {
 		COMPONENT: '.cmp',
 		CONTROLLER: 'Controller.js',
@@ -30,6 +22,14 @@ var fileExtensionMap = {
 		RENDERER: 'Renderer.js',
 		EVENT: '.evt',
 		RESOURCE: '.resource'
+	};
+
+var fileFormatMap = {
+		COMPONENT: 'XML',
+		CONTROLLER: 'JS',
+		HELPER: 'JS',
+		RENDERER: 'JS',
+		EVENT: 'XML'
 	};
 
 var conn = new jsforce.Connection();
@@ -418,15 +418,6 @@ function createComponentCMP(bundleId, inputArgs){
 	});
 }
 
-
-var fileFormatMap = {
-		COMPONENT: 'XML',
-		CONTROLLER: 'JS',
-		HELPER: 'JS',
-		RENDERER: 'JS',
-		EVENT: 'XML'
-	};
-
 function createComponentFile(bundleId, inputArgs, type){
 	fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + fileExtensionMap[type], 'utf8', function(err, contents){
 		if(validContent(contents)){
@@ -445,78 +436,6 @@ function createComponentFile(bundleId, inputArgs, type){
 
 }
 
-// function createComponentEVT(bundleId, inputArgs){
-// 	fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + '.evt', 'utf8', function(err, contents){
-		
-// 		if(validContent(contents)){
-// 			var evtContent = contents;
-// 			conn.tooling.sobject('AuraDefinition').create({
-// 				AuraDefinitionBundleId: bundleId,
-// 			    DefType: 'EVENT',
-// 			    Format: 'XML',
-// 			    Source: evtContent
-// 			  }, function(err, res) {
-// 			  if (err) { return console.error(err); }
-// 			  console.log(inputArgs.name + ' EVT has been created');
-// 			});
-// 		}
-// 	});
-// }
-
-// function createComponentController(bundleId, inputArgs){
-// 	fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + 'Controller.js', 'utf8', function(err, contents){
-		
-// 		if(validContent(contents)){
-// 			var controllerContent = contents;
-// 			conn.tooling.sobject('AuraDefinition').create({
-// 				AuraDefinitionBundleId: bundleId,
-// 			    DefType: 'CONTROLLER',
-// 			    Format: 'JS',
-// 			    Source: controllerContent
-// 			  }, function(err, res) {
-// 			  if (err) { return console.error(err); }
-// 			  console.log(inputArgs.name + ' Controller has been created');
-// 			});
-// 		}
-// 	});
-// }
-
-// function createComponentHelper(bundleId, inputArgs){
-// 	fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + 'Helper.js', 'utf8', function(err, contents){
-		
-// 		if(validContent(contents)){
-// 			var helperContent = contents;
-// 			conn.tooling.sobject('AuraDefinition').create({
-// 			AuraDefinitionBundleId: bundleId,
-// 			    DefType: 'HELPER',
-// 			    Format: 'JS',
-// 			    Source: helperContent
-// 			  }, function(err, res) {
-// 			  if (err) { return console.error(err); }
-// 			  console.log(inputArgs.name + ' Helper has been created');
-// 			});
-// 		}
-// 	});
-// }
-
-// function createComponentRenderer(bundleId, inputArgs){
-// 	fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + 'Renderer.js', 'utf8', function(err, contents){
-		
-// 		if(validContent(contents)){
-// 			var rendererContent = contents;
-// 			conn.tooling.sobject('AuraDefinition').create({
-// 			AuraDefinitionBundleId: bundleId,
-// 			    DefType: 'RENDERER',
-// 			    Format: 'JS',
-// 			    Source: rendererContent
-// 			  }, function(err, res) {
-// 			  if (err) { return console.error(err); }
-// 			  console.log(inputArgs.name + ' Renderer has been created');
-// 			});
-// 		}
-// 	});
-// }
-
 function updateComponentFiles(bundleId, defTypeArray, callback){
 	async.each(defTypeArray,
 		function (defType, callback){
@@ -529,8 +448,8 @@ function updateComponentFiles(bundleId, defTypeArray, callback){
 					});
 				},
 				function readFile(fileId, callback){
-					fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + fileTypeMap[defType], 'utf8', function(err, contents){
-						console.log("reading file " + process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + fileTypeMap[defType]);
+					fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + fileExtensionMap[defType], 'utf8', function(err, contents){
+						console.log("reading file " + process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + fileExtensionMap[defType]);
 						var fileContent = contents;
 						callback(null, fileId, fileContent);
 					});
