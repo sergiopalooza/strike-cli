@@ -242,6 +242,10 @@ function downloadFile(fileName, fileExtension){
 	});
 }
 
+function validContent(body){
+	return body != '404: Not Found\n'
+}
+
 function doesComponentFolderExist(){
 
 	return fs.existsSync(process.cwd() + "/strike-components"); 
@@ -381,6 +385,20 @@ function createApplication(bundleId){
 
 function createComponentCMP(bundleId, inputArgs){
 	fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + '.cmp', 'utf8', function(err, contents){
+		
+		// if(validContent(contents)){
+		// 	var cmpContent = contents;
+		// 	conn.tooling.sobject('AuraDefinition').create({
+		// 		AuraDefinitionBundleId: bundleId,
+		// 	    DefType: 'COMPONENT',
+		// 	    Format: 'XML',
+		// 	    Source: cmpContent
+		// 	  }, function(err, res) {
+		// 	  if (err) { return console.error(err); }
+		// 	  console.log(inputArgs.name + ' CMP has been created');
+		// 	});
+		// }
+
 		if(err){
 			console.log('CMP file not found. Falling back on default');
 			var cmpContent = '<aura:component></aura:component>';
@@ -400,87 +418,76 @@ function createComponentCMP(bundleId, inputArgs){
 	});
 }
 
+
 function createComponentEVT(bundleId, inputArgs){
 	fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + '.evt', 'utf8', function(err, contents){
-		if(err){
-			console.log('evt file not found. Falling back on default');
-			var evtContent = '<aura:event type="APPLICATION" description="Event template" />';
-		} else {
-			var evtContent = contents;
-		}
 		
-		conn.tooling.sobject('AuraDefinition').create({
-			AuraDefinitionBundleId: bundleId,
-		    DefType: 'EVENT',
-		    Format: 'XML',
-		    Source: evtContent
-		  }, function(err, res) {
-		  if (err) { return console.error(err); }
-		  console.log(inputArgs.name + ' EVT has been created');
-		});
+		if(validContent(contents)){
+			var evtContent = contents;
+			conn.tooling.sobject('AuraDefinition').create({
+				AuraDefinitionBundleId: bundleId,
+			    DefType: 'EVENT',
+			    Format: 'XML',
+			    Source: evtContent
+			  }, function(err, res) {
+			  if (err) { return console.error(err); }
+			  console.log(inputArgs.name + ' EVT has been created');
+			});
+		}
 	});
 }
 
 function createComponentController(bundleId, inputArgs){
 	fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + 'Controller.js', 'utf8', function(err, contents){
-		if(err){
-			console.log('Controller file not found. Falling back on default');
-			var controllerContent = '({\n\tmyAction : function(component, event, helper) {\n\t}\n})';
-		} else {
-			var controllerContent = contents;	
+		
+		if(validContent(contents)){
+			var controllerContent = contents;
+			conn.tooling.sobject('AuraDefinition').create({
+				AuraDefinitionBundleId: bundleId,
+			    DefType: 'CONTROLLER',
+			    Format: 'JS',
+			    Source: controllerContent
+			  }, function(err, res) {
+			  if (err) { return console.error(err); }
+			  console.log(inputArgs.name + ' Controller has been created');
+			});
 		}
-
-		conn.tooling.sobject('AuraDefinition').create({
-			AuraDefinitionBundleId: bundleId,
-		    DefType: 'CONTROLLER',
-		    Format: 'JS',
-		    Source: controllerContent
-		  }, function(err, res) {
-		  if (err) { return console.error(err); }
-		  console.log(inputArgs.name + ' Controller has been created');
-		});
 	});
 }
 
 function createComponentHelper(bundleId, inputArgs){
 	fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + 'Helper.js', 'utf8', function(err, contents){
-		if(err){
-			console.log('Helper file not found. Falling back on default');
-			var helperContent = '({\n\thelperMethod : function() {\n\t}\n})';
-		} else {
+		
+		if(validContent(contents)){
 			var helperContent = contents;
+			conn.tooling.sobject('AuraDefinition').create({
+			AuraDefinitionBundleId: bundleId,
+			    DefType: 'HELPER',
+			    Format: 'JS',
+			    Source: helperContent
+			  }, function(err, res) {
+			  if (err) { return console.error(err); }
+			  console.log(inputArgs.name + ' Helper has been created');
+			});
 		}
-
-		conn.tooling.sobject('AuraDefinition').create({
-		AuraDefinitionBundleId: bundleId,
-		    DefType: 'HELPER',
-		    Format: 'JS',
-		    Source: helperContent
-		  }, function(err, res) {
-		  if (err) { return console.error(err); }
-		  console.log(inputArgs.name + ' Helper has been created');
-		});
 	});
 }
 
 function createComponentRenderer(bundleId, inputArgs){
 	fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + 'Renderer.js', 'utf8', function(err, contents){
-		if(err){
-			console.log('Renderer file not found. Falling back on default');
-			var rendererContent = '({\n\t// Your renderer method overrides go here \n})';
-		} else {
+		
+		if(validContent(contents)){
 			var rendererContent = contents;
+			conn.tooling.sobject('AuraDefinition').create({
+			AuraDefinitionBundleId: bundleId,
+			    DefType: 'RENDERER',
+			    Format: 'JS',
+			    Source: rendererContent
+			  }, function(err, res) {
+			  if (err) { return console.error(err); }
+			  console.log(inputArgs.name + ' Renderer has been created');
+			});
 		}
-
-		conn.tooling.sobject('AuraDefinition').create({
-		AuraDefinitionBundleId: bundleId,
-		    DefType: 'RENDERER',
-		    Format: 'JS',
-		    Source: rendererContent
-		  }, function(err, res) {
-		  if (err) { return console.error(err); }
-		  console.log(inputArgs.name + ' Renderer has been created');
-		});
 	});
 }
 
