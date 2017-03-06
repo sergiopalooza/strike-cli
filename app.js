@@ -224,17 +224,6 @@ function downloadFile(fileName, fileExtension){
 			response.on('end', function(){
 				callback(null, body)
 			});
-		},
-		function verifyFileContents(body, callback){
-			// console.log('checking for 404');
-			if(body == '404: Not Found\n'){
-				//if we find out later that the file is actually a 404, we go and delete the file since it wont save to Salesforce
-				//TODO we still want to delete a 404 because salesforce will still try to push it
-				log(fileSource+ '404: Not Found');
-				// fs.unlinkSync(fileDestination);
-				// log('after verifying contents');
-				// console.log(fileDestination + " was deleted");
-			}		
 		}
 	], function(err, result){
 		if (err) { return console.error(chalk.red(err)); }
@@ -332,7 +321,7 @@ function createAuraDefinitionBundle(inputArgs, callback){
 		if(isEvent(inputArgs.name)){
 			createComponentFile(bundleId, inputArgs, 'EVENT');	
 		} else {
-			createComponentCMP(bundleId, inputArgs);
+			createComponentFile(bundleId, inputArgs, 'COMPONENT');
 			createComponentFile(bundleId, inputArgs, 'CONTROLLER');
 			createComponentFile(bundleId, inputArgs, 'HELPER');
 			createComponentFile(bundleId, inputArgs, 'RENDERER');
@@ -380,41 +369,6 @@ function createApplication(bundleId){
 	  }, function(err, res) {
 	  if (err) { return console.error(err); }
 	  console.log(res);
-	});
-}
-
-function createComponentCMP(bundleId, inputArgs){
-	fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + '.cmp', 'utf8', function(err, contents){
-		
-		// if(validContent(contents)){
-		// 	var cmpContent = contents;
-		// 	conn.tooling.sobject('AuraDefinition').create({
-		// 		AuraDefinitionBundleId: bundleId,
-		// 	    DefType: 'COMPONENT',
-		// 	    Format: 'XML',
-		// 	    Source: cmpContent
-		// 	  }, function(err, res) {
-		// 	  if (err) { return console.error(err); }
-		// 	  console.log(inputArgs.name + ' CMP has been created');
-		// 	});
-		// }
-
-		if(err){
-			console.log('CMP file not found. Falling back on default');
-			var cmpContent = '<aura:component></aura:component>';
-		} else {
-			var cmpContent = contents;
-		}
-		
-		conn.tooling.sobject('AuraDefinition').create({
-			AuraDefinitionBundleId: bundleId,
-		    DefType: 'COMPONENT',
-		    Format: 'XML',
-		    Source: cmpContent
-		  }, function(err, res) {
-		  if (err) { return console.error(err); }
-		  console.log(inputArgs.name + ' CMP has been created');
-		});
 	});
 }
 
