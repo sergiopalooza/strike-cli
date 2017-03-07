@@ -37,7 +37,8 @@ var dependencyMap = { //we will have to download this from the repo eventually
 	strike_badge: ['strike_badge'],
 	strike_chart: ['strike_chart'],
 	strike_modal: ['strike_evt_modalPrimaryButtonClicked', 'strike_evt_modalHidden', 'strike_evt_modalHide', 'strike_evt_modalShown', 'strike_evt_modalShow', 'strike_modal'],
-  	strike_textArea: ['strike_textArea']
+  	strike_textarea: ['strike_textarea'],
+  	strike_select: ['svg', 'strike_evt_notifyParent', 'strike_select']
 };
 
 var conn = new jsforce.Connection();
@@ -172,6 +173,7 @@ function downloadComponentBundle(componentName){
 	if(requiresD3(componentName)){
 		downloadFile('d3', 'RESOURCE');
 	}
+
 	downloadFile(componentName, 'COMPONENT');
 	downloadFile(componentName, 'CONTROLLER');
 	downloadFile(componentName, 'HELPER');
@@ -332,7 +334,7 @@ function createStaticResource(name){
 			log('we now have the body');
 		}
 
-		conn.tooling.sobject('StaticResource').upsert({
+		conn.tooling.sobject('StaticResource').create({
 			body: encodedBody,
 			ContentType: 'text/javascript',
 			CacheControl: 'Public',
