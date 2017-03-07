@@ -332,7 +332,7 @@ function createStaticResource(name){
 			log('we now have the body');
 		}
 
-		conn.tooling.sobject('StaticResource').create({
+		conn.tooling.sobject('StaticResource').upsert({
 			body: encodedBody,
 			ContentType: 'text/javascript',
 			CacheControl: 'Public',
