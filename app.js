@@ -32,6 +32,14 @@ var fileFormatMap = {
 		EVENT: 'XML'
 	};
 
+var dependencyMap = { //we will have to download this from the repo eventually
+	strike_tooltip: ['strike_tooltip'],
+	strike_badge: ['strike_badge'],
+	strike_chart: ['strike_chart'],
+	strike_modal: ['strike_evt_modalPrimaryButtonClicked', 'strike_evt_modalHidden', 'strike_evt_modalHide', 'strike_evt_modalShown', 'strike_evt_modalShow', 'strike_modal'],
+  	strike_textArea: ['strike_textArea']
+};
+
 var conn = new jsforce.Connection();
 
 if(resetFlagExists()){
@@ -56,37 +64,30 @@ if(resetFlagExists()){
 						callback(null);
 					});
 				} else {
-					// var bundlesToCreate = ['strike_evt_modalHidden', 'strike_evt_modalHide', 'strike_evt_modalShown', 'strike_evt_modalShow', 'strike_modal'];
+					var bundlesToCreate = dependencyMap[process.argv[2]];
 
-					// async.eachSeries(bundlesToCreate, function(bundle, callback){
-					// 	var tmpBundleInfo = {
-					// 		name: bundle, // my description
-	  		// 				description: bundle
-					// 	};
+					async.eachSeries(bundlesToCreate, function(bundle, callback){
+						var tmpBundleInfo = {
+							name: bundle, // my description
+	  						description: bundle
+						};
 
-					// 	createAuraDefinitionBundle(tmpBundleInfo, function(){
-					// 		callback(null);
-					// 	});						
-					// }, function(err){
-					// 	if( err ) {
-					//       // One of the iterations produced an error.
-					//       // All processing will now stop.
-					//       console.log('A file failed to process');
-					//     } else {
-					//       console.log('All files have been processed successfully');
-					//     }
-					// })
+						if(requiresD3(bundle)){
+							createStaticResource('d3');
+						}
 
-
-					
-					if(requiresD3()){
-						log('is strike chart true');
-						createStaticResource('d3');
-					}
-
-					createAuraDefinitionBundle(result.userInput.bundleInfo, function(){
-						callback(null);
-					});
+						createAuraDefinitionBundle(tmpBundleInfo, function(){
+							callback(null);
+						});						
+					}, function(err){
+						if(err) {
+					      // One of the iterations produced an error.
+					      // All processing will now stop.
+					      console.log('A file failed to process');
+					    } else {
+					      console.log('All files have been processed successfully');
+					    }
+					})
 				}
 			}
 		], function deleteStrikeComponentFolder(err, result){
@@ -94,7 +95,6 @@ if(resetFlagExists()){
 		});
 	});
 }
-
 
 
 function getUserInput(callback){
@@ -122,9 +122,9 @@ function queryForExistingBundle(userInput, callback){
 	});
 }
 
-function requiresD3(){
+function requiresD3(bundle){
 	
-	return process.argv[2] === 'strike_chart';
+	return bundle === 'strike_chart';
 }
 
 function resetFlagExists() {
@@ -153,8 +153,9 @@ function createStrikeComponentFolder(){
 
 function downloadTargetComponents(callback, targetComponents){
 	log('we are downloading components');
-	var targetComponents = [process.argv[2]];
-	// var targetComponents = ['strike_evt_modalHidden', 'strike_evt_modalHide', 'strike_evt_modalShown', 'strike_evt_modalShow', 'strike_modal'];
+	
+	var inputComponent = [process.argv[2]];
+	var targetComponents = dependencyMap[process.argv[2]];
 
 	targetComponents.forEach(function(componentName){
 		downloadComponentBundle(componentName);
@@ -166,7 +167,7 @@ function downloadTargetComponents(callback, targetComponents){
 function downloadComponentBundle(componentName){
 	fs.mkdirSync(process.cwd() + "/strike-components/" + componentName);
 
-	if(requiresD3()){
+	if(requiresD3(componentName)){
 		downloadFile('d3', 'RESOURCE');
 	}
 	downloadFile(componentName, 'COMPONENT');
@@ -210,7 +211,6 @@ function downloadFile(fileName, fileExtension){
 		}
 	], function(err, result){
 		if (err) { return console.error(chalk.red(err)); }
-		console.log('all done');
 	});
 }
 
@@ -356,9 +356,9 @@ function createApplication(bundleId){
 }
 
 function createComponentFile(bundleId, inputArgs, type){
-	fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + fileExtensionMap[type], 'utf8', function(err, contents){
+	log('creating ' + type + ' file for ' + inputArgs.name);
+		fs.readFile(process.cwd() + '/strike-components/' + inputArgs.name + '/' + inputArgs.name + fileExtensionMap[type], 'utf8', function(err, contents){
 		if(validContent(contents)){
-			log('contents are valid!');
 			conn.tooling.sobject('AuraDefinition').create({
 				AuraDefinitionBundleId: bundleId,
 				DefType: type,
@@ -366,11 +366,9 @@ function createComponentFile(bundleId, inputArgs, type){
 				Source: contents
 			}, function(err, res){
 				if (err) { return console.error(err); }
-				console.log(inputArgs.name + type + ' has been created');
 			});
 		}
 	})
-
 }
 
 function updateComponentFiles(bundleId, defTypeArray, callback){
