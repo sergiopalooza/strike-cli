@@ -66,7 +66,7 @@ if(resetFlagExists()){
 
 					// 	createAuraDefinitionBundle(tmpBundleInfo, function(){
 					// 		callback(null);
-					// 	)};						
+					// 	});						
 					// }, function(err){
 					// 	if( err ) {
 					//       // One of the iterations produced an error.
