@@ -84,8 +84,10 @@ if(resetFlagExists()){
 					      // One of the iterations produced an error.
 					      // All processing will now stop.
 					      console.log('A file failed to process');
+					      callback(null);
 					    } else {
 					      console.log('All files have been processed successfully');
+					      callback(null);
 					    }
 					})
 				}
