@@ -330,13 +330,16 @@ function createAuraDefinitionBundle(inputArgs, callback){
 		// }
 
 		if (err) {
-			conn.tooling.query("Select Id, DeveloperName FROM AuraDefinitionBundle WHERE DeveloperName ='" + inputArgs.name + "'", function(err, res){
-				if (err) { return console.error(chalk.red(err)); }
-				console.log('in query response');
-				console.log(res);
-				callback();
-			});
-
+			if(err.errorCode === 'DUPLICATE_DEVELOPER_NAME'){
+				conn.tooling.query("Select Id, DeveloperName FROM AuraDefinitionBundle WHERE DeveloperName ='" + inputArgs.name + "'", function(err, res){
+					if (err) { return console.error(chalk.red(err)); }
+					console.log('in query response');
+					console.log(res.records[0].DeveloperName + ' already exists');
+					callback();
+				});
+			} else {
+				return console.error(err);
+			}
 		} else {
 			console.log(inputArgs.name + ' Bundle has been created');
 			console.log(res);
