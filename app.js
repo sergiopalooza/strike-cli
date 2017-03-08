@@ -42,9 +42,9 @@ var dependencyMap = { //we will have to download this from the repo eventually
 	strike_chart: ['strike_chart'],
 	strike_modal: ['strike_evt_modalPrimaryButtonClicked', 'strike_evt_modalHidden', 'strike_evt_modalHide', 'strike_evt_modalShown', 'strike_evt_modalShow', 'strike_modal'],
   	strike_textarea: ['strike_textarea'],
-  	strike_select: ['svg', 'strike_evt_notifyParent', 'strike_select'],
+  	strike_select: ['strike_tooltip', 'defaultTokens', 'svg', 'strike_evt_notifyParent', 'strike_select'],
   	strike_datepicker: ['defaultTokens', 'strike_datepicker'],
-  	strike_multiSelectPicklist: ['defaultTokens', 'strike_evt_notifyParent', 'strike_evt_componentDestroyed', 'strike_multiSelectPicklist']
+  	strike_multiSelectPicklist: ['defaultTokens', 'strike_evt_notifyParent', 'strike_evt_componentDestroyed', 'strike_tooltip', 'strike_multiSelectPicklist']
 };
 
 var conn = new jsforce.Connection();
@@ -72,13 +72,13 @@ if(resetFlagExists()){
 					});
 				} else {
 					var bundlesToCreate = dependencyMap[process.argv[2]];
-
+					console.log('before creating a bundle');
 					async.eachSeries(bundlesToCreate, function(bundle, callback){
 						var tmpBundleInfo = {
 							name: bundle, // my description
 	  						description: bundle
 						};
-
+						console.log('in the for each!');
 						if(requiresD3(bundle)){
 							createStaticResource('d3');
 						}
@@ -104,6 +104,8 @@ if(resetFlagExists()){
 		});
 	});
 }
+
+log('this is the end!');
 
 
 function getUserInput(callback){
@@ -307,25 +309,63 @@ function createAuraDefinitionBundle(inputArgs, callback){
 	  	MasterLabel: inputArgs.name, 
 	  	ApiVersion:'36.0'
 	}, 	function(err, res){
-		if (err) { return console.error(err); }
-		console.log(inputArgs.name + ' Bundle has been created');
-		// console.log(res);
-
-		var bundleId = res.id;
-
-		if(isEvent(inputArgs.name)){
-			createComponentFile(bundleId, inputArgs, 'EVENT');	
-		} else if(isToken(inputArgs.name)){
-			createComponentFile(bundleId, inputArgs, 'TOKENS')
-		} else{
-			createComponentFile(bundleId, inputArgs, 'COMPONENT');
-			createComponentFile(bundleId, inputArgs, 'CONTROLLER');
-			createComponentFile(bundleId, inputArgs, 'HELPER');
-			createComponentFile(bundleId, inputArgs, 'RENDERER');
-			createComponentFile(bundleId, inputArgs, 'STYLE');
-		}
 		
-		callback(); //if the files end up being deleted before we read them then look here first when debugging
+		// if (err) {
+		// 	if(err.errorCode === 'DUPLICATE_DEVELOPER_NAME'){
+		// 		console.log('query for ID and update');
+		// 		var tempObj = {
+		// 			bundleInfo: inputArgs
+		// 		};
+
+		// 		conn.tooling.query("Select Id, DeveloperName FROM AuraDefinitionBundle WHERE DeveloperName ='" + inputArgs.name + "'", function(err, res){
+		// 				if (err) { return console.error(chalk.red(err)); }
+		// 				console.log('in query response');
+		// 				console.log(res);
+		// 			});
+		// 	} else {
+		// 		console.log(err.errorCode);
+		// 		console.log(typeof(err));
+		// 		return console.error(err);
+		// 	}
+		// }
+
+		if (err) {
+			conn.tooling.query("Select Id, DeveloperName FROM AuraDefinitionBundle WHERE DeveloperName ='" + inputArgs.name + "'", function(err, res){
+				if (err) { return console.error(chalk.red(err)); }
+				console.log('in query response');
+				console.log(res);
+				callback();
+			});
+
+		} else {
+			console.log(inputArgs.name + ' Bundle has been created');
+			console.log(res);
+
+			var bundleId = res.id;
+
+			if(isEvent(inputArgs.name)){
+				createComponentFile(bundleId, inputArgs, 'EVENT');	
+			} else if(isToken(inputArgs.name)){
+				createComponentFile(bundleId, inputArgs, 'TOKENS')
+			} else{
+				createComponentFile(bundleId, inputArgs, 'COMPONENT');
+				createComponentFile(bundleId, inputArgs, 'CONTROLLER');
+				createComponentFile(bundleId, inputArgs, 'HELPER');
+				createComponentFile(bundleId, inputArgs, 'RENDERER');
+				createComponentFile(bundleId, inputArgs, 'STYLE');
+			}
+			
+			callback(); //if the files end up being deleted before we read them then look here first when debugging
+		}
+
+		
+	});
+}
+
+function queryForExistingBundle(userInput, callback){
+	conn.tooling.query("Select Id, DeveloperName FROM AuraDefinitionBundle WHERE DeveloperName ='" + userInput.bundleInfo.name + "'", function(err, res){
+		if (err) { return console.error(chalk.red(err)); }
+		callback(null, {queryResult: res, userInput: userInput});
 	});
 }
 
@@ -385,7 +425,7 @@ function createComponentFile(bundleId, inputArgs, type){
 				Format: fileFormatMap[type],
 				Source: contents
 			}, function(err, res){
-				if (err) { return console.error(err); }
+				if (err) { return console.error(err + '!!!!'); }
 			});
 		}
 	})
