@@ -21,7 +21,9 @@ var fileExtensionMap = {
 		HELPER: 'Helper.js',
 		RENDERER: 'Renderer.js',
 		EVENT: '.evt',
-		RESOURCE: '.resource'
+		RESOURCE: '.resource',
+		STYLE: '.css',
+		TOKENS: '.tokens'
 	};
 
 var fileFormatMap = {
@@ -29,7 +31,9 @@ var fileFormatMap = {
 		CONTROLLER: 'JS',
 		HELPER: 'JS',
 		RENDERER: 'JS',
-		EVENT: 'XML'
+		EVENT: 'XML',
+		TOKENS: 'XML',
+		STYLE: 'CSS'
 	};
 
 var dependencyMap = { //we will have to download this from the repo eventually
@@ -38,7 +42,9 @@ var dependencyMap = { //we will have to download this from the repo eventually
 	strike_chart: ['strike_chart'],
 	strike_modal: ['strike_evt_modalPrimaryButtonClicked', 'strike_evt_modalHidden', 'strike_evt_modalHide', 'strike_evt_modalShown', 'strike_evt_modalShow', 'strike_modal'],
   	strike_textarea: ['strike_textarea'],
-  	strike_select: ['svg', 'strike_evt_notifyParent', 'strike_select']
+  	strike_select: ['svg', 'strike_evt_notifyParent', 'strike_select'],
+  	strike_datepicker: ['defaultTokens', 'strike_datepicker'],
+  	strike_multiSelectPicklist: ['defaultTokens', 'strike_evt_notifyParent', 'strike_evt_componentDestroyed', 'strike_multiSelectPicklist']
 };
 
 var conn = new jsforce.Connection();
@@ -179,6 +185,8 @@ function downloadComponentBundle(componentName){
 	downloadFile(componentName, 'HELPER');
 	downloadFile(componentName, 'RENDERER');
 	downloadFile(componentName, 'EVENT');
+	downloadFile(componentName, 'STYLE');
+	downloadFile(componentName, 'TOKENS');
 }
 
 function downloadFile(fileName, fileExtension){
@@ -297,7 +305,7 @@ function createAuraDefinitionBundle(inputArgs, callback){
 		Description: inputArgs.description, // my description
 	  	DeveloperName: inputArgs.name,
 	  	MasterLabel: inputArgs.name, 
-	  	ApiVersion:'32.0'
+	  	ApiVersion:'36.0'
 	}, 	function(err, res){
 		if (err) { return console.error(err); }
 		console.log(inputArgs.name + ' Bundle has been created');
@@ -307,11 +315,14 @@ function createAuraDefinitionBundle(inputArgs, callback){
 
 		if(isEvent(inputArgs.name)){
 			createComponentFile(bundleId, inputArgs, 'EVENT');	
-		} else {
+		} else if(isToken(inputArgs.name)){
+			createComponentFile(bundleId, inputArgs, 'TOKENS')
+		} else{
 			createComponentFile(bundleId, inputArgs, 'COMPONENT');
 			createComponentFile(bundleId, inputArgs, 'CONTROLLER');
 			createComponentFile(bundleId, inputArgs, 'HELPER');
 			createComponentFile(bundleId, inputArgs, 'RENDERER');
+			createComponentFile(bundleId, inputArgs, 'STYLE');
 		}
 		
 		callback(); //if the files end up being deleted before we read them then look here first when debugging
@@ -321,6 +332,10 @@ function createAuraDefinitionBundle(inputArgs, callback){
 function isEvent(name){
 	
 	return name.substring(0,10) === 'strike_evt';
+}
+function isToken(name){
+	
+	return name === 'defaultTokens';
 }
 
 function createStaticResource(name){
@@ -362,6 +377,7 @@ function createApplication(bundleId){
 function createComponentFile(bundleId, inputArgs, type){
 	log('creating ' + type + ' file for ' + inputArgs.name);
 		fs.readFile(process.cwd() + '/strike-components/' + inputArgs.name + '/' + inputArgs.name + fileExtensionMap[type], 'utf8', function(err, contents){
+			log(process.cwd() + '/strike-components/' + inputArgs.name + '/' + inputArgs.name + fileExtensionMap[type]);
 		if(validContent(contents)){
 			conn.tooling.sobject('AuraDefinition').create({
 				AuraDefinitionBundleId: bundleId,
