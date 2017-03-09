@@ -61,51 +61,11 @@ if(resetFlagExists()){
 		downloadTargetComponents,
 		getUserInput,
 		login,
-		queryForExistingBundle,
+		upsertComponentFiles,
 	], function(err, result){
-		async.waterfall([
-			function upsertComponentFiles(callback){
-				if (bundleExists(result.queryResult)){
-					var bundleId = result.queryResult.records[0].Id;
-					updateComponentFiles(bundleId, ['COMPONENT', 'CONTROLLER', 'HELPER', 'RENDERER'], function(){
-						callback(null);
-					});
-				} else {
-					var bundlesToCreate = dependencyMap[process.argv[2]];
-					console.log('before creating a bundle');
-					async.eachSeries(bundlesToCreate, function(bundle, callback){
-						var tmpBundleInfo = {
-							name: bundle, // my description
-	  						description: 'I was created from Strike-CLI'
-						};
-
-						if(requiresD3(bundle)){
-							createStaticResource('d3');
-						}
-
-						createAuraDefinitionBundle(tmpBundleInfo, function(){
-							callback(null);
-						});						
-					}, function(err){
-						if(err) {
-					      // One of the iterations produced an error.
-					      // All processing will now stop.
-					      console.log('A file failed to process');
-					      callback(null);
-					    } else {
-					      console.log('All files have been processed successfully');
-					      callback(null);
-					    }
-					})
-				}
-			}
-		], function deleteStrikeComponentFolder(err, result){
-			deleteFolderRecursive(process.cwd() + "/strike-components");
-		});
+		deleteFolderRecursive(process.cwd() + "/strike-components");
 	});
 }
-
-
 
 function getUserInput(callback){
 	log('we are in getUserInput');
@@ -121,14 +81,32 @@ function login(userInput, callback){
 	conn.login(userInput.username, userInput.password, function(err, res) {
 		if (err) { return console.error(chalk.red(err)); }
 		saveUserInput(userInput.username, userInput.password); //comment this if you dont want to capture credentials
-		callback(null, userInput);
+		callback(null, userInput); //TODO, do i still need to pass userinput around? 
 	});
 }
 
-function queryForExistingBundle(userInput, callback){
-	conn.tooling.query("Select Id, DeveloperName FROM AuraDefinitionBundle WHERE DeveloperName ='" + userInput.bundleInfo.name + "'", function(err, res){
-		if (err) { return console.error(chalk.red(err)); }
-		callback(null, {queryResult: res, userInput: userInput});
+function upsertComponentFiles(userinput, callback){
+	log('we upserting files');
+	var bundlesToCreate = dependencyMap[process.argv[2]];
+	async.eachSeries(bundlesToCreate, function(bundle, callback){
+		var tmpBundleInfo = {
+			name: bundle, // my description
+				description: 'I was created from Strike-CLI'
+		};
+
+		if(requiresD3(bundle)){
+			createStaticResource('d3');
+		}
+
+		createAuraDefinitionBundle(tmpBundleInfo, function(){
+			callback(null);
+		});						
+	}, function(err){
+		if(err) {
+	      callback(null, err);
+	    } else {
+	      callback(null, 'done');
+	    }
 	});
 }
 
@@ -172,7 +150,7 @@ function downloadTargetComponents(callback, targetComponents){
 		
 		callback(null);
 	} else {
-		console.log('Sorry, this is not a supported component');
+		console.log('Sorry, ' + process.argv[2] + ' is not a supported component');
 	}
 }
 
@@ -444,13 +422,6 @@ function createAuraDefinitionBundle(inputArgs, callback){
 	});
 }
 
-function queryForExistingBundle(userInput, callback){
-	conn.tooling.query("Select Id, DeveloperName FROM AuraDefinitionBundle WHERE DeveloperName ='" + userInput.bundleInfo.name + "'", function(err, res){
-		if (err) { return console.error(chalk.red(err)); }
-		callback(null, {queryResult: res, userInput: userInput});
-	});
-}
-
 function isEvent(name){
 	
 	return name.substring(0,10) === 'strike_evt';
@@ -524,7 +495,6 @@ function upsertComponentFile(bundleId, inputArgs, type){
 				Format: fileFormatMap[type],
 				Source: contents
 			}, function(err, res){
-				log(err)
 				if (err) {
 					if(err.errorCode === 'DUPLICATE_VALUE'){
 						log('we have an error trying to insert a duplicate file');
