@@ -11,7 +11,6 @@ var db = low('db.json');
 var async = require('async');
 
 const REPO_BASE_URL = "https://raw.githubusercontent.com/appiphony/Strike-Components/master";
-// const STATIC_RESOURCE_URL = "https://raw.githubusercontent.com/appiphony/Strike-Components/master/staticresources";
 
 var isDev = false;
 
