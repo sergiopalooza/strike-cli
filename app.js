@@ -78,7 +78,7 @@ function login(userInput, callback){
 	conn.login(userInput.username, userInput.password, function(err, res) {
 		if (err) { return console.error(chalk.red(err)); }
 		saveUserInput(userInput.username, userInput.password); //comment this if you dont want to capture credentials
-		callback(null); //TODO, do i still need to pass userinput around? 
+		callback(null);
 	});
 }
 
