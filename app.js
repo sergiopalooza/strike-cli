@@ -12,8 +12,6 @@ var async = require('async');
 
 const REPO_BASE_URL = "https://raw.githubusercontent.com/appiphony/Strike-Components/master";
 
-var isDev = false;
-
 var fileExtensionMap = {
 		COMPONENT: '.cmp',
 		CONTROLLER: 'Controller.js',
@@ -457,8 +455,12 @@ function setFlagExists() {
 	return process.argv[2] == '-set' || process.argv[2] == '-s';
 }
 
+function verboseFlagExists() {
+	return process.argv.indexOf('-v') > -1 || process.argv.indexOf('--verbose') > -1;
+}
+
 function log(text){
-	if(isDev){
+	if(verboseFlagExists()){
 		console.log(text);
 	}
 }
