@@ -13,7 +13,7 @@ var async = require('async');
 const REPO_BASE_URL = "https://raw.githubusercontent.com/appiphony/Strike-Components/master/aura";
 const STATIC_RESOURCE_URL = "https://raw.githubusercontent.com/appiphony/Strike-Components/master/staticresources";
 
-var isDev = true;
+var isDev = false;
 
 var fileExtensionMap = {
 		COMPONENT: '.cmp',
@@ -269,7 +269,7 @@ function deleteFolderRecursive(path) {
                 deleteFolderRecursive(curPath);
             } else { // delete file
                 fs.unlinkSync(curPath);
-                console.log('deleted ' + curPath);
+                log('deleted ' + curPath);
             }
         });
         fs.rmdirSync(path);
@@ -324,12 +324,12 @@ function createAuraDefinitionBundle(inputArgs, callback){
 		// 	}
 		// }
 		var bundleId;
-
+		
 		if(err){
 			if(err.errorCode === 'DUPLICATE_DEVELOPER_NAME'){
 				conn.tooling.query("Select Id, DeveloperName FROM AuraDefinitionBundle WHERE DeveloperName ='" + inputArgs.name + "'", function(err, res){
 					if (err) { return console.error(chalk.red(err)); }
-					console.log(res.records[0].DeveloperName + ' bundle already exists');
+					console.log(res.records[0].DeveloperName + ' bundle already exists, updating its respective files...');
 					bundleId = res.records[0].Id;
 
 					upsertFiles(bundleId, inputArgs, function(){
@@ -341,6 +341,7 @@ function createAuraDefinitionBundle(inputArgs, callback){
 				{ return console.error(chalk.red(err)); }
 			}
 		} else{
+			console.log(inputArgs.name + ' bundle was created')
 			bundleId = res.id;
 
 			upsertFiles(bundleId, inputArgs, function(){
@@ -500,22 +501,23 @@ function upsertComponentFile(bundleId, inputArgs, type){
 						log('we have an error trying to insert a duplicate file');
 						conn.tooling.query("Select Id, AuraDefinitionBundleId, DefType FROM AuraDefinition WHERE AuraDefinitionBundleId ='" + bundleId + "'" + "AND DefType ='"+ type + "'", function(err, res){
 							if (err) { return console.error(chalk.red(err)); }
-							console.log(res.records[0].Id + ' is the existing ID');
+							log(res.records[0].Id + ' is the existing ID');
 							var fileId = res.records[0].Id; 
 
 							conn.tooling.sobject('AuraDefinition').update({Id: fileId, Source: contents}, function(err, res){
 								if (err) { 
 									console.error(err); 
 								} else {
-									console.log('we have updated a file');
-									log(res);
+									console.log(type + ' file for ' + inputArgs.name + ' ' + type + ' was updated');
 								}
 							});
 						});
 					} else {
 						return console.error(err);	
 					}
-				} 
+				} else{
+					console.log(type + ' file for ' + inputArgs.name + ' ' + type + ' was created');
+				}
 			});
 		}
 	})
