@@ -78,7 +78,7 @@ if(resetFlagExists()){
 							name: bundle, // my description
 	  						description: bundle
 						};
-						console.log('in the for each!');
+
 						if(requiresD3(bundle)){
 							createStaticResource('d3');
 						}
@@ -105,7 +105,6 @@ if(resetFlagExists()){
 	});
 }
 
-log('this is the end!');
 
 
 function getUserInput(callback){
@@ -205,7 +204,7 @@ function downloadFile(fileName, fileExtension){
 
 	async.waterfall([
 		function requestFile(callback){
-			console.log('downloading from url: ' + fileSource); 
+			// console.log('downloading from url: ' + fileSource); 
 				http.get(fileSource, function(response) {
 				callback(null, response);
 			});
@@ -302,6 +301,22 @@ function bundleExists(response){
 	return response.records.length > 0;
 }
 
+function upsertFiles(bundleId, inputArgs, callback){
+	if(isEvent(inputArgs.name)){
+		upsertComponentFile(bundleId, inputArgs, 'EVENT');	
+	} else if(isToken(inputArgs.name)){
+		upsertComponentFile(bundleId, inputArgs, 'TOKENS')
+	} else{
+		upsertComponentFile(bundleId, inputArgs, 'COMPONENT');
+		upsertComponentFile(bundleId, inputArgs, 'CONTROLLER');
+		upsertComponentFile(bundleId, inputArgs, 'HELPER');
+		upsertComponentFile(bundleId, inputArgs, 'RENDERER');
+		upsertComponentFile(bundleId, inputArgs, 'STYLE');
+	}
+	
+	callback();
+}
+
 function createAuraDefinitionBundle(inputArgs, callback){
 	conn.tooling.sobject('AuraDefinitionBundle').create({
 		Description: inputArgs.description, // my description
@@ -328,38 +343,100 @@ function createAuraDefinitionBundle(inputArgs, callback){
 		// 		return console.error(err);
 		// 	}
 		// }
+		var bundleId;
 
-		if (err) {
+		if(err){
 			if(err.errorCode === 'DUPLICATE_DEVELOPER_NAME'){
 				conn.tooling.query("Select Id, DeveloperName FROM AuraDefinitionBundle WHERE DeveloperName ='" + inputArgs.name + "'", function(err, res){
 					if (err) { return console.error(chalk.red(err)); }
-					console.log('in query response');
-					console.log(res.records[0].DeveloperName + ' already exists');
-					callback();
+					console.log(res.records[0].DeveloperName + ' bundle already exists');
+					bundleId = res.records[0].Id;
+
+					upsertFiles(bundleId, inputArgs, function(){
+						log('upsertFiles Ran');
+						callback();
+					});
 				});
-			} else {
-				return console.error(err);
-			}
-		} else {
-			console.log(inputArgs.name + ' Bundle has been created');
-			console.log(res);
-
-			var bundleId = res.id;
-
-			if(isEvent(inputArgs.name)){
-				createComponentFile(bundleId, inputArgs, 'EVENT');	
-			} else if(isToken(inputArgs.name)){
-				createComponentFile(bundleId, inputArgs, 'TOKENS')
 			} else{
-				createComponentFile(bundleId, inputArgs, 'COMPONENT');
-				createComponentFile(bundleId, inputArgs, 'CONTROLLER');
-				createComponentFile(bundleId, inputArgs, 'HELPER');
-				createComponentFile(bundleId, inputArgs, 'RENDERER');
-				createComponentFile(bundleId, inputArgs, 'STYLE');
+				{ return console.error(chalk.red(err)); }
 			}
-			
-			callback(); //if the files end up being deleted before we read them then look here first when debugging
+		} else{
+			bundleId = res.id;
+
+			upsertFiles(bundleId, inputArgs, function(){
+				log('upsertFiles Ran');
+				callback();
+			});
 		}
+
+		
+		
+
+
+		// if(isEvent(inputArgs.name)){
+		// 	upsertComponentFile(bundleId, inputArgs, 'EVENT');	
+		// } else if(isToken(inputArgs.name)){
+		// 	upsertComponentFile(bundleId, inputArgs, 'TOKENS')
+		// } else{
+		// 	upsertComponentFile(bundleId, inputArgs, 'COMPONENT');
+		// 	upsertComponentFile(bundleId, inputArgs, 'CONTROLLER');
+		// 	upsertComponentFile(bundleId, inputArgs, 'HELPER');
+		// 	upsertComponentFile(bundleId, inputArgs, 'RENDERER');
+		// 	upsertComponentFile(bundleId, inputArgs, 'STYLE');
+		// }
+		
+		// callback();
+
+
+
+
+
+
+		// if (err) {
+		// 	if(err.errorCode === 'DUPLICATE_DEVELOPER_NAME'){
+		// 		conn.tooling.query("Select Id, DeveloperName FROM AuraDefinitionBundle WHERE DeveloperName ='" + inputArgs.name + "'", function(err, res){
+		// 			if (err) { return console.error(chalk.red(err)); }
+		// 			var bundleId = res.records[0].Id;
+		// 			console.log('in bundle query response');
+		// 			console.log(res.records[0].DeveloperName + ' bundle already exists');
+
+		// 			if(isEvent(inputArgs.name)){
+		// 				upsertComponentFile(bundleId, inputArgs, 'EVENT');	
+		// 			} else if(isToken(inputArgs.name)){
+		// 				upsertComponentFile(bundleId, inputArgs, 'TOKENS')
+		// 			} else{
+		// 				upsertComponentFile(bundleId, inputArgs, 'COMPONENT');
+		// 				upsertComponentFile(bundleId, inputArgs, 'CONTROLLER');
+		// 				upsertComponentFile(bundleId, inputArgs, 'HELPER');
+		// 				upsertComponentFile(bundleId, inputArgs, 'RENDERER');
+		// 				upsertComponentFile(bundleId, inputArgs, 'STYLE');
+		// 			}
+					
+		// 			callback();
+		// 		});
+		// 	} else {
+		// 		return console.error(err);
+		// 	}
+		// } else {
+		// 	console.log(inputArgs.name + ' Bundle has been created');
+		// 	console.log(res);
+
+		// 	var bundleId = res.id;
+
+		// 	if(isEvent(inputArgs.name)){
+		// 		createComponentFile(bundleId, inputArgs, 'EVENT');	
+		// 	} else if(isToken(inputArgs.name)){
+		// 		createComponentFile(bundleId, inputArgs, 'TOKENS')
+		// 	} else{
+		// 		createComponentFile(bundleId, inputArgs, 'COMPONENT');
+		// 		createComponentFile(bundleId, inputArgs, 'CONTROLLER');
+		// 		createComponentFile(bundleId, inputArgs, 'HELPER');
+		// 		createComponentFile(bundleId, inputArgs, 'RENDERER');
+		// 		createComponentFile(bundleId, inputArgs, 'STYLE');
+		// 	}
+			
+		// 	callback(); //if the files end up being deleted before we read them then look here first when debugging
+		// }
 
 		
 	});
@@ -429,6 +506,44 @@ function createComponentFile(bundleId, inputArgs, type){
 				Source: contents
 			}, function(err, res){
 				if (err) { return console.error(err + '!!!!'); }
+			});
+		}
+	})
+}
+
+function upsertComponentFile(bundleId, inputArgs, type){
+	log('upserting ' + type + ' file for ' + inputArgs.name);
+		fs.readFile(process.cwd() + '/strike-components/' + inputArgs.name + '/' + inputArgs.name + fileExtensionMap[type], 'utf8', function(err, contents){
+			log('reading from ' + process.cwd() + '/strike-components/' + inputArgs.name + '/' + inputArgs.name + fileExtensionMap[type]);
+		if(validContent(contents)){
+			conn.tooling.sobject('AuraDefinition').create({
+				AuraDefinitionBundleId: bundleId,
+				DefType: type,
+				Format: fileFormatMap[type],
+				Source: contents
+			}, function(err, res){
+				log(err)
+				if (err) {
+					if(err.errorCode === 'DUPLICATE_VALUE'){
+						log('we have an error trying to insert a duplicate file');
+						conn.tooling.query("Select Id, AuraDefinitionBundleId, DefType FROM AuraDefinition WHERE AuraDefinitionBundleId ='" + bundleId + "'" + "AND DefType ='"+ type + "'", function(err, res){
+							if (err) { return console.error(chalk.red(err)); }
+							console.log(res.records[0].Id + ' is the existing ID');
+							var fileId = res.records[0].Id; 
+
+							conn.tooling.sobject('AuraDefinition').update({Id: fileId, Source: contents}, function(err, res){
+								if (err) { 
+									console.error(err); 
+								} else {
+									console.log('we have updated a file');
+									log(res);
+								}
+							});
+						});
+					} else {
+						return console.error(err);	
+					}
+				} 
 			});
 		}
 	})
