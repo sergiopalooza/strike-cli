@@ -76,7 +76,7 @@ if(resetFlagExists()){
 					async.eachSeries(bundlesToCreate, function(bundle, callback){
 						var tmpBundleInfo = {
 							name: bundle, // my description
-	  						description: bundle
+	  						description: 'I was created from Strike-CLI'
 						};
 
 						if(requiresD3(bundle)){
@@ -163,15 +163,17 @@ function createStrikeComponentFolder(){
 
 function downloadTargetComponents(callback, targetComponents){
 	log('we are downloading components');
-	
-	var inputComponent = [process.argv[2]];
-	var targetComponents = dependencyMap[process.argv[2]];
+	if(dependencyMap.hasOwnProperty(process.argv[2])){
+		var targetComponents = dependencyMap[process.argv[2]];
 
-	targetComponents.forEach(function(componentName){
-		downloadComponentBundle(componentName);
-	});
-	
-	callback(null);
+		targetComponents.forEach(function(componentName){
+			downloadComponentBundle(componentName);
+		});
+		
+		callback(null);
+	} else {
+		console.log('Sorry, this is not a supported component');
+	}
 }
 
 function downloadComponentBundle(componentName){
