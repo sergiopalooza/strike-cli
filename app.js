@@ -10,8 +10,8 @@ var low = require('lowdb');
 var db = low('db.json');
 var async = require('async');
 
-const REPO_BASE_URL = "https://raw.githubusercontent.com/appiphony/Strike-Components/master/aura";
-const STATIC_RESOURCE_URL = "https://raw.githubusercontent.com/appiphony/Strike-Components/master/staticresources";
+const REPO_BASE_URL = "https://raw.githubusercontent.com/appiphony/Strike-Components/master";
+// const STATIC_RESOURCE_URL = "https://raw.githubusercontent.com/appiphony/Strike-Components/master/staticresources";
 
 var isDev = false;
 
@@ -175,10 +175,10 @@ function downloadFile(fileName, fileExtension){
 	var fileDestination;
 
 	if(fileExtension === 'RESOURCE'){
-		fileSource = STATIC_RESOURCE_URL + "/" + fileName + fileExtensionMap[fileExtension];
+		fileSource = REPO_BASE_URL + "/staticresources/" + fileName + fileExtensionMap[fileExtension];
 		fileDestination = fs.createWriteStream(process.cwd() + "/strike-components/" + fileName + fileExtensionMap[fileExtension], {flags: 'w', mode: 0755});
 	} else {
-		fileSource = REPO_BASE_URL + "/" + fileName + "/" + fileName + fileExtensionMap[fileExtension]
+		fileSource = REPO_BASE_URL + "/aura/" + fileName + "/" + fileName + fileExtensionMap[fileExtension]
 		fileDestination = fs.createWriteStream(process.cwd() + "/strike-components/" + fileName + "/" + fileName + fileExtensionMap[fileExtension], {flags: 'w', mode: 0755});
 	}
 
@@ -305,24 +305,6 @@ function createAuraDefinitionBundle(inputArgs, callback){
 	  	ApiVersion:'36.0'
 	}, 	function(err, res){
 		
-		// if (err) {
-		// 	if(err.errorCode === 'DUPLICATE_DEVELOPER_NAME'){
-		// 		console.log('query for ID and update');
-		// 		var tempObj = {
-		// 			bundleInfo: inputArgs
-		// 		};
-
-		// 		conn.tooling.query("Select Id, DeveloperName FROM AuraDefinitionBundle WHERE DeveloperName ='" + inputArgs.name + "'", function(err, res){
-		// 				if (err) { return console.error(chalk.red(err)); }
-		// 				console.log('in query response');
-		// 				console.log(res);
-		// 			});
-		// 	} else {
-		// 		console.log(err.errorCode);
-		// 		console.log(typeof(err));
-		// 		return console.error(err);
-		// 	}
-		// }
 		var bundleId;
 		
 		if(err){
@@ -349,77 +331,6 @@ function createAuraDefinitionBundle(inputArgs, callback){
 				callback();
 			});
 		}
-
-		
-		
-
-
-		// if(isEvent(inputArgs.name)){
-		// 	upsertComponentFile(bundleId, inputArgs, 'EVENT');	
-		// } else if(isToken(inputArgs.name)){
-		// 	upsertComponentFile(bundleId, inputArgs, 'TOKENS')
-		// } else{
-		// 	upsertComponentFile(bundleId, inputArgs, 'COMPONENT');
-		// 	upsertComponentFile(bundleId, inputArgs, 'CONTROLLER');
-		// 	upsertComponentFile(bundleId, inputArgs, 'HELPER');
-		// 	upsertComponentFile(bundleId, inputArgs, 'RENDERER');
-		// 	upsertComponentFile(bundleId, inputArgs, 'STYLE');
-		// }
-		
-		// callback();
-
-
-
-
-
-
-		// if (err) {
-		// 	if(err.errorCode === 'DUPLICATE_DEVELOPER_NAME'){
-		// 		conn.tooling.query("Select Id, DeveloperName FROM AuraDefinitionBundle WHERE DeveloperName ='" + inputArgs.name + "'", function(err, res){
-		// 			if (err) { return console.error(chalk.red(err)); }
-		// 			var bundleId = res.records[0].Id;
-		// 			console.log('in bundle query response');
-		// 			console.log(res.records[0].DeveloperName + ' bundle already exists');
-
-		// 			if(isEvent(inputArgs.name)){
-		// 				upsertComponentFile(bundleId, inputArgs, 'EVENT');	
-		// 			} else if(isToken(inputArgs.name)){
-		// 				upsertComponentFile(bundleId, inputArgs, 'TOKENS')
-		// 			} else{
-		// 				upsertComponentFile(bundleId, inputArgs, 'COMPONENT');
-		// 				upsertComponentFile(bundleId, inputArgs, 'CONTROLLER');
-		// 				upsertComponentFile(bundleId, inputArgs, 'HELPER');
-		// 				upsertComponentFile(bundleId, inputArgs, 'RENDERER');
-		// 				upsertComponentFile(bundleId, inputArgs, 'STYLE');
-		// 			}
-					
-		// 			callback();
-		// 		});
-		// 	} else {
-		// 		return console.error(err);
-		// 	}
-		// } else {
-		// 	console.log(inputArgs.name + ' Bundle has been created');
-		// 	console.log(res);
-
-		// 	var bundleId = res.id;
-
-		// 	if(isEvent(inputArgs.name)){
-		// 		createComponentFile(bundleId, inputArgs, 'EVENT');	
-		// 	} else if(isToken(inputArgs.name)){
-		// 		createComponentFile(bundleId, inputArgs, 'TOKENS')
-		// 	} else{
-		// 		createComponentFile(bundleId, inputArgs, 'COMPONENT');
-		// 		createComponentFile(bundleId, inputArgs, 'CONTROLLER');
-		// 		createComponentFile(bundleId, inputArgs, 'HELPER');
-		// 		createComponentFile(bundleId, inputArgs, 'RENDERER');
-		// 		createComponentFile(bundleId, inputArgs, 'STYLE');
-		// 	}
-			
-		// 	callback(); //if the files end up being deleted before we read them then look here first when debugging
-		// }
-
-		
 	});
 }
 
@@ -521,50 +432,6 @@ function upsertComponentFile(bundleId, inputArgs, type){
 			});
 		}
 	})
-}
-
-function updateComponentFiles(bundleId, defTypeArray, callback){
-	async.each(defTypeArray,
-		function (defType, callback){
-			async.waterfall([
-				function queryFileIdByDefType(callback){
-					conn.tooling.query("Select Id, AuraDefinitionBundleId, DefType FROM AuraDefinition WHERE AuraDefinitionBundleId ='" + bundleId + "'" + "AND DefType ='"+ defType + "'", function(err, res){
-						if (err) { return console.error(chalk.red(err)); }
-						var fileId = res.records[0].Id;
-						log('ID: ' + res.records[0].Id);
-						callback(null, fileId);
-					});
-				},
-				function readFile(fileId, callback){
-					fs.readFile(process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + fileExtensionMap[defType], 'utf8', function(err, contents){
-						console.log("reading file " + process.cwd() + '/strike-components/' + process.argv[2] + '/' + process.argv[2] + fileExtensionMap[defType]);
-						var fileContent = contents;
-						callback(null, fileId, fileContent);
-					});
-				},
-				function deployFile(fileId, fileContent, callback){
-					conn.tooling.sobject('AuraDefinition').update({Id: fileId, Source: fileContent}, function(err, res){
-						if (err) { 
-							console.error(err); 
-							callback(null, defType);
-						} else {
-							console.log('we depoloyed ' + defType + ' has been updated');
-							callback(null, defType);	
-						}
-					});
-				}
-			], function(err, result){
-				if (err) { return console.error(chalk.red(err)); }
-				log('we are in the last part of the waterfall');
-				callback();
-			});
-		}, 		
-		function(err){
-			if (err) { return console.error(chalk.red(err)); }
-			console.log('async forEach has finsished');
-			callback();
-		}
-	);
 }
 
 function generateRandomComponentName(){
