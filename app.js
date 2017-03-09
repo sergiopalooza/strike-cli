@@ -78,11 +78,11 @@ function login(userInput, callback){
 	conn.login(userInput.username, userInput.password, function(err, res) {
 		if (err) { return console.error(chalk.red(err)); }
 		saveUserInput(userInput.username, userInput.password); //comment this if you dont want to capture credentials
-		callback(null, userInput); //TODO, do i still need to pass userinput around? 
+		callback(null); //TODO, do i still need to pass userinput around? 
 	});
 }
 
-function upsertComponentFiles(userinput, callback){
+function upsertComponentFiles(callback){
 	log('we upserting files');
 	var bundlesToCreate = dependencyMap[process.argv[2]];
 	async.eachSeries(bundlesToCreate, function(bundle, callback){
@@ -114,7 +114,7 @@ function requiresD3(bundle){
 
 function resetFlagExists() {
 
-	return process.argv[2] == 'reset' || process.argv[2] == '-r';
+	return process.argv.indexOf('-r') > -1 || process.argv.indexOf('--reset') > -1;
 }
 
 function intializeDatabase (){
