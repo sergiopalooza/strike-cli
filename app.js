@@ -42,9 +42,10 @@ var dependencyMap = { //we will have to download this from the repo eventually
   	strike_select: ['strike_tooltip', 'defaultTokens', 'svg', 'strike_evt_notifyParent', 'strike_select'],
   	strike_datepicker: ['defaultTokens', 'strike_datepicker'],
   	strike_multiSelectPicklist: ['defaultTokens', 'strike_evt_notifyParent', 'strike_evt_componentDestroyed', 'strike_tooltip', 'strike_multiSelectPicklist'],
-  	strike_lookup: ['defaultTokens', 'strike_evt_addNewRecord', 'svg', 'strike_lookup'],
-  	strike_lookupController: ['strike_lookupController.cls']
-  	// strike_lookup: ['strike_utilties', 'strike_responseData', 'strike_lookupController']
+  	strike_lookup: ['strike_utilities.cls', 'strike_responseData.cls', 'strike_lookupController.cls', 'defaultTokens', 'strike_evt_addNewRecord', 'svg', 'strike_lookup'],
+  	strike_lookupController: ['strike_utilities.cls', 'strike_responseData.cls', 'strike_lookupController.cls'],
+  	strike_responseData: ['strike_utilities.cls', 'strike_responseData.cls'],
+  	strike_utilities: ['strike_utilities.cls']
 };
 
 var conn = new jsforce.Connection();
@@ -61,7 +62,7 @@ if(resetFlagExists()){
 		downloadTargetComponents,
 		getUserInput,
 		login,
-		// upsertComponentFiles,
+		upsertComponentFiles,
 	], function(err, result){
 		// deleteFolderRecursive(process.cwd() + "/strike-components");
 	});
@@ -89,18 +90,27 @@ function upsertComponentFiles(callback){
 	log('we upserting files');
 	var bundlesToCreate = dependencyMap[process.argv[2]];
 	async.eachSeries(bundlesToCreate, function(bundle, callback){
-		var tmpBundleInfo = {
-			name: bundle, // my description
-				description: 'I was created from Strike-CLI'
-		};
+		if(isApex(bundle)){
+			log('we are not creating a bundle, we need to create an apex class instead');
+			createApexClass(bundle, function(){
+				callback(null);	
+			});
+			
+		} else {
+			var tmpBundleInfo = {
+				name: bundle, // my description
+					description: 'I was created from Strike-CLI'
+			};
 
-		if(requiresD3(bundle)){
-			createStaticResource('d3');
+			if(requiresD3(bundle)){
+				createStaticResource('d3');
+			}
+
+			createAuraDefinitionBundle(tmpBundleInfo, function(){
+				callback(null);
+			});					
 		}
-
-		createAuraDefinitionBundle(tmpBundleInfo, function(){
-			callback(null);
-		});						
+			
 	}, function(err){
 		if(err) {
 	      callback(null, err);
@@ -155,24 +165,29 @@ function downloadTargetComponents(callback, targetComponents){
 }
 
 function isApex(fileName){
-	
+
 	return fileName.substring(fileName.length - 4) === '.cls'
 }
 
 function downloadComponentBundle(componentName){
-	fs.mkdirSync(process.cwd() + "/strike-components/" + componentName);
+	if(isApex(componentName)){
+		log(componentName + ' is an apex class');
+		downloadFile(componentName, 'APEX');
+	} else {
+		fs.mkdirSync(process.cwd() + "/strike-components/" + componentName);
 
-	if(requiresD3(componentName)){
-		downloadFile('d3', 'RESOURCE');
+		if(requiresD3(componentName)){
+			downloadFile('d3', 'RESOURCE');
+		}
+
+		downloadFile(componentName, 'COMPONENT');
+		downloadFile(componentName, 'CONTROLLER');
+		downloadFile(componentName, 'HELPER');
+		downloadFile(componentName, 'RENDERER');
+		downloadFile(componentName, 'EVENT');
+		downloadFile(componentName, 'STYLE');
+		downloadFile(componentName, 'TOKENS');
 	}
-
-	downloadFile(componentName, 'COMPONENT');
-	downloadFile(componentName, 'CONTROLLER');
-	downloadFile(componentName, 'HELPER');
-	downloadFile(componentName, 'RENDERER');
-	downloadFile(componentName, 'EVENT');
-	downloadFile(componentName, 'STYLE');
-	downloadFile(componentName, 'TOKENS');
 }
 
 function downloadFile(fileName, fileExtension){
@@ -182,6 +197,9 @@ function downloadFile(fileName, fileExtension){
 	if(fileExtension === 'RESOURCE'){
 		fileSource = REPO_BASE_URL + "/staticresources/" + fileName + fileExtensionMap[fileExtension];
 		fileDestination = fs.createWriteStream(process.cwd() + "/strike-components/" + fileName + fileExtensionMap[fileExtension], {flags: 'w', mode: 0755});
+	} else if(fileExtension === 'APEX'){
+		fileSource = REPO_BASE_URL + "/classes/" + fileName;
+		fileDestination = fs.createWriteStream(process.cwd() + "/strike-components/" + fileName, {flags: 'w', mode: 0755});
 	} else {
 		fileSource = REPO_BASE_URL + "/aura/" + fileName + "/" + fileName + fileExtensionMap[fileExtension]
 		fileDestination = fs.createWriteStream(process.cwd() + "/strike-components/" + fileName + "/" + fileName + fileExtensionMap[fileExtension], {flags: 'w', mode: 0755});
@@ -300,6 +318,44 @@ function upsertFiles(bundleId, inputArgs, callback){
 	}
 	
 	callback();
+}
+
+function createApexClass(bundle, callback){
+	log('upserting ' + bundle);
+	fs.readFile(process.cwd() + '/strike-components/' + bundle, 'utf8', function(err, contents){
+		conn.tooling.sobject('ApexClass').create({
+			body: contents
+		}, function(err, res){
+			if(err){
+				if(err.errorCode === 'DUPLICATE_VALUE'){
+					log('we had a duplicate value error');
+
+					conn.tooling.query("SELECT Id, Name FROM ApexClass WHERE Name = " + "'" + bundle.substring(0, bundle.length - 4) + "'", function(err, res){
+						if (err) { return console.error(chalk.red(err)); }
+						log(res);
+						log(res.records[0].Id + ' is the existing ID');
+						var fileId = res.records[0].Id; 
+						conn.tooling.sobject('ApexClassMember').update({Id: fileId, Body: contents}, function(err, res){
+							log(err);
+							log(res);
+							log('we are after calling update');
+							if(err){
+								console.log(err);
+								callback();	
+							} else {
+								console.log(bundle + ' was updated');
+								callback();	
+							}
+						});
+					});
+				}
+			} else{
+				console.log(bundle + ' was created');
+				callback();	
+			}
+			
+		});
+	})
 }
 
 function createAuraDefinitionBundle(inputArgs, callback){
