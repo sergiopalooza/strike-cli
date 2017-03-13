@@ -41,7 +41,10 @@ var dependencyMap = { //we will have to download this from the repo eventually
   	strike_textarea: ['strike_textarea'],
   	strike_select: ['strike_tooltip', 'defaultTokens', 'svg', 'strike_evt_notifyParent', 'strike_select'],
   	strike_datepicker: ['defaultTokens', 'strike_datepicker'],
-  	strike_multiSelectPicklist: ['defaultTokens', 'strike_evt_notifyParent', 'strike_evt_componentDestroyed', 'strike_tooltip', 'strike_multiSelectPicklist']
+  	strike_multiSelectPicklist: ['defaultTokens', 'strike_evt_notifyParent', 'strike_evt_componentDestroyed', 'strike_tooltip', 'strike_multiSelectPicklist'],
+  	strike_lookup: ['defaultTokens', 'strike_evt_addNewRecord', 'svg', 'strike_lookup'],
+  	strike_lookupController: ['strike_lookupController.cls']
+  	// strike_lookup: ['strike_utilties', 'strike_responseData', 'strike_lookupController']
 };
 
 var conn = new jsforce.Connection();
@@ -58,9 +61,9 @@ if(resetFlagExists()){
 		downloadTargetComponents,
 		getUserInput,
 		login,
-		upsertComponentFiles,
+		// upsertComponentFiles,
 	], function(err, result){
-		deleteFolderRecursive(process.cwd() + "/strike-components");
+		// deleteFolderRecursive(process.cwd() + "/strike-components");
 	});
 }
 
@@ -149,6 +152,11 @@ function downloadTargetComponents(callback, targetComponents){
 	} else {
 		console.log('Sorry, ' + process.argv[2] + ' is not a supported component');
 	}
+}
+
+function isApex(fileName){
+	
+	return fileName.substring(fileName.length - 4) === '.cls'
 }
 
 function downloadComponentBundle(componentName){
