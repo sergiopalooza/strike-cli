@@ -9,6 +9,7 @@ var clear = require('clear');
 var low = require('lowdb');
 var db = low('db.json');
 var async = require('async');
+var commander = require('commander');
 
 const REPO_BASE_URL = "https://raw.githubusercontent.com/appiphony/Strike-Components/master";
 
@@ -55,6 +56,7 @@ if(resetFlagExists()){
 	console.log('Configuration file reset');
 } else {
 	intializeDatabase();
+	configureHelpCommand();
 	drawScreen();
 	createStrikeComponentFolder();
 	prompt.start();
@@ -64,7 +66,7 @@ if(resetFlagExists()){
 		login,
 		upsertComponentFiles,
 	], function(err, result){
-		// deleteFolderRecursive(process.cwd() + "/strike-components");
+		deleteFolderRecursive(process.cwd() + "/strike-components");
 	});
 }
 
@@ -507,6 +509,32 @@ function generateRandomComponentName(){
 	var randomInt = dateComponents.join("");
 	var componentName = 'Prototype_Component' + randomInt;
 	return componentName;
+}
+
+function configureHelpCommand(){
+	drawScreen();
+	commander
+		.usage('<component_name> [options]')
+		.option('-r, --reset', 'Resets stored credentials')
+		.option('-v, --verbose', 'Verbose mode for development');
+		
+
+	commander.on('--help', function(){
+		console.log('  Supported Components:');
+		console.log('');
+		console.log('    <strike_tooltip>');
+		console.log('    <strike_badge>');
+		console.log('    <strike_chart>');
+		console.log('    <strike_modal>');
+		console.log('    <strike_textarea>');
+		console.log('    <strike_select>');
+		console.log('    <strike_datepicker>');
+		console.log('    <strike_multiSelectPicklist>');
+		console.log('    <strike_lookup>');
+		console.log('');
+	});
+
+	commander.parse(process.argv);
 }
 
 function downloadFlagExists() {
