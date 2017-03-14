@@ -34,20 +34,7 @@ var fileFormatMap = {
 		STYLE: 'CSS'
 	};
 
-var dependencyMap = {
-	"strike_tooltip": ["strike_tooltip"],
-	"strike_badge": ["strike_badge"],
-	"strike_chart": ["strike_chart"],
-	"strike_modal": ["strike_evt_modalPrimaryButtonClicked", "strike_evt_modalHidden", "strike_evt_modalHide", "strike_evt_modalShown", "strike_evt_modalShow", "strike_modal"],
-  	"strike_textarea": ["strike_textarea"],
-  	"strike_select": ["strike_tooltip", "defaultTokens", "svg", "strike_evt_notifyParent", "strike_option", "strike_select"],
-  	"strike_datepicker": ["defaultTokens", "strike_datepicker"],
-  	"strike_multiSelectPicklist": ["defaultTokens", "strike_evt_notifyParent", "strike_evt_componentDestroyed", "strike_option", "strike_tooltip", "strike_multiSelectPicklist"],
-  	"strike_lookup": ["strike_utilities.cls", "strike_responseData.cls", "strike_lookupController.cls", "defaultTokens", "strike_evt_addNewRecord", "svg", "strike_lookup"],
-  	"strike_lookupController": ["strike_utilities.cls", "strike_responseData.cls", "strike_lookupController.cls"],
-  	"strike_responseData": ["strike_utilities.cls", "strike_responseData.cls"],
-  	"strike_utilities": ["strike_utilities.cls"]
-};
+var dependencyMap;
 
 var conn = new jsforce.Connection();
 
@@ -61,6 +48,7 @@ if(resetFlagExists()){
 	createStrikeComponentFolder();
 	prompt.start();
 	async.waterfall([
+		downloadDependencyMap,
 		downloadTargetComponents,
 		getUserInput,
 		login,
@@ -151,8 +139,26 @@ function createStrikeComponentFolder(){
 	fs.existsSync(process.cwd() + "/strike-components") || fs.mkdirSync(process.cwd() + "/strike-components");	
 }
 
+
+function downloadDependencyMap(callback){
+	http.get(REPO_BASE_URL + '/dependency.json', function(response){
+		if (response.statusCode !== 200) { return console.error(chalk.red(err)); }
+		var body = '';
+		
+		response.on('data', function(d){
+			body += d;
+		});
+
+		response.on('end', function(){
+			dependencyMap = JSON.parse(body);
+			callback();
+		});
+	});
+}
+
 function downloadTargetComponents(callback, targetComponents){
-	log('we are downloading components');
+	log('before downloadTargetComponents');
+
 	if(dependencyMap.hasOwnProperty(process.argv[2])){
 		var targetComponents = dependencyMap[process.argv[2]];
 
