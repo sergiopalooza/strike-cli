@@ -335,7 +335,9 @@ function createApexClass(bundle, callback){
 						log(res);
 						log(res.records[0].Id + ' is the existing ID');
 						var fileId = res.records[0].Id; 
+						log(chalk.blue('we get here right before running the callback'));
 						conn.tooling.sobject('ApexClassMember').update({Id: fileId, Body: contents}, function(err, res){
+							log(chalk.blue('we dont get here right after running the callback'));
 							log(err);
 							log(res);
 							log('we are after calling update');
