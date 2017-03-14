@@ -515,8 +515,8 @@ function configureHelpCommand(){
 	drawScreen();
 	commander
 		.usage('<component_name> [options]')
-		.option('-r, --reset', 'Resets stored credentials')
-		.option('-v, --verbose', 'Verbose mode for development');
+		.option('-r, --reset', 'resets stored credentials')
+		.option('-v, --verbose', 'verbose mode for development');
 		
 
 	commander.on('--help', function(){
