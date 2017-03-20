@@ -215,13 +215,11 @@ function downloadFile(fileName, fileExtension){
 
 	async.waterfall([
 		function requestFile(callback){
-			// console.log('downloading from url: ' + fileSource); 
 				http.get(fileSource, function(response) {
 				callback(null, response);
 			});
 		},
 		function writeResponseToFile(response, callback){
-			// console.log('saving the response');
 			response.pipe(fileDestination);
 			var body = '';
 			
