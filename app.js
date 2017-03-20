@@ -37,12 +37,18 @@ var fileFormatMap = {
 var dependencyMap;
 
 var conn = new jsforce.Connection();
+intializeDatabase();
 
 if(disconnectCommandExists()){
 	fs.unlinkSync(process.cwd() + "/db.json");
 	console.log('Credentials have been disconnected');
+} else if(connectCommandExists()){
+	prompt.start();
+	getUserInput(function(callback, userInput){
+		saveUserInput(userInput.username, userInput.password); //comment this if you dont want to capture credentials
+		console.log('Credentials for ' + userInput.username + ' connected');
+	});
 } else {
-	intializeDatabase();
 	configureHelpCommand();
 	drawScreen();
 	createStrikeComponentFolder();
@@ -71,7 +77,6 @@ function login(userInput, callback){
 	log('we are logging in');
 	conn.login(userInput.username, userInput.password, function(err, res) {
 		if (err) { return console.error(chalk.red(err)); }
-		//saveUserInput(userInput.username, userInput.password); //comment this if you dont want to capture credentials
 		callback(null);
 	});
 }
@@ -116,9 +121,12 @@ function requiresD3(bundle){
 }
 
 function connectCommandExists() {
+
 	return process.argv[2] == 'connect';
 }
+
 function disconnectCommandExists() {
+
 	return process.argv[2] == 'disconnect';
 }
 
