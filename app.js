@@ -38,9 +38,9 @@ var dependencyMap;
 
 var conn = new jsforce.Connection();
 
-if(resetFlagExists()){
+if(disconnectCommandExists()){
 	fs.unlinkSync(process.cwd() + "/db.json");
-	console.log('Configuration file reset');
+	console.log('Credentials have been disconnected');
 } else {
 	intializeDatabase();
 	configureHelpCommand();
@@ -71,7 +71,7 @@ function login(userInput, callback){
 	log('we are logging in');
 	conn.login(userInput.username, userInput.password, function(err, res) {
 		if (err) { return console.error(chalk.red(err)); }
-		saveUserInput(userInput.username, userInput.password); //comment this if you dont want to capture credentials
+		//saveUserInput(userInput.username, userInput.password); //comment this if you dont want to capture credentials
 		callback(null);
 	});
 }
@@ -115,9 +115,11 @@ function requiresD3(bundle){
 	return bundle === 'strike_chart';
 }
 
-function resetFlagExists() {
-
-	return process.argv.indexOf('-r') > -1 || process.argv.indexOf('--reset') > -1;
+function connectCommandExists() {
+	return process.argv[2] == 'connect';
+}
+function disconnectCommandExists() {
+	return process.argv[2] == 'disconnect';
 }
 
 function intializeDatabase (){
@@ -519,7 +521,7 @@ function configureHelpCommand(){
 	drawScreen();
 	commander
 		.usage('<component_name> [options]')
-		.option('-r, --reset', 'resets stored credentials')
+		.option('disconnect', 'disconnects stored credentials')
 		.option('-v, --verbose', 'verbose mode for development');
 		
 
