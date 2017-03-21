@@ -529,8 +529,9 @@ function configureHelpCommand(){
 	drawScreen();
 	commander
 		.usage('<component_name> [options]')
-		.option('disconnect', 'disconnects stored credentials')
-		.option('-v, --verbose', 'verbose mode for development');
+		.option('-v, --verbose', 'verbose mode for development')
+		.option('connect', 'connect/store credentials')
+		.option('disconnect', 'disconnects stored credentials');
 		
 
 	commander.on('--help', function(){
