@@ -343,6 +343,7 @@ function createApexClass(bundle, callback){
 		}, function(err, res){
 			if(err){
 				if(err.errorCode === 'DUPLICATE_VALUE'){
+					log('we have an error trying to insert a duplicate file');
 					conn.tooling.query("SELECT Id, Name FROM ApexClass WHERE Name = " + "'" + bundle.substring(0, bundle.length - 4) + "'", function(err, res){
 						if (err) { return console.error(chalk.red(err)); }
 						var fileId = res.records[0].Id; 
@@ -427,9 +428,11 @@ function createStaticResource(name){
 			CacheControl: 'Public',
 			Name: name
 		}, function(err, res){
-			log('we are in the response???');
-			if (err) { return console.error(err); }
-			 console.log(res);
+			if(err){
+				if(err.errorCode === 'DUPLICATE_DEVELOPER_NAME'){
+					console.log(name + ' static resource already exists');
+				} 	
+			}
 		});
 	})
 }
