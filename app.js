@@ -13,7 +13,7 @@ var commander = require('commander');
 
 const REPO_BASE_URL = "https://raw.githubusercontent.com/appiphony/Strike-Components/master";
 
-var fileExtensionMap = {
+const fileExtensionMap = {
 		COMPONENT: '.cmp',
 		CONTROLLER: 'Controller.js',
 		HELPER: 'Helper.js',
@@ -24,7 +24,7 @@ var fileExtensionMap = {
 		TOKENS: '.tokens'
 	};
 
-var fileFormatMap = {
+const fileFormatMap = {
 		COMPONENT: 'XML',
 		CONTROLLER: 'JS',
 		HELPER: 'JS',
@@ -35,8 +35,8 @@ var fileFormatMap = {
 	};
 
 var dependencyMap;
-
 var conn = new jsforce.Connection();
+
 intializeDatabase();
 
 if(disconnectCommandExists()){
@@ -45,7 +45,7 @@ if(disconnectCommandExists()){
 } else if(connectCommandExists()){
 	prompt.start();
 	getUserInput(function(callback, userInput){
-		saveUserInput(userInput.username, userInput.password); //comment this if you dont want to capture credentials
+		saveUserInput(userInput.username, userInput.password);
 		console.log('Credentials for ' + userInput.username + ' connected');
 	});
 } else {
