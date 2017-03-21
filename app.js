@@ -65,7 +65,7 @@ if(disconnectCommandExists()){
 }
 
 function getUserInput(callback){
-	log('we are in getUserInput');
+	log('entering getUserInput');
 	prompt.get(configurePromptSchema(), function (err, res){
 		if (err) { return console.error(chalk.red(err)); }
 		var userInput = createUserInputObj(res);
@@ -74,7 +74,7 @@ function getUserInput(callback){
 }
 
 function login(userInput, callback){
-	log('we are logging in');
+	log('entering login');
 	conn.login(userInput.username, userInput.password, function(err, res) {
 		if (err) { return console.error(chalk.red(err)); }
 		callback(null);
@@ -82,7 +82,7 @@ function login(userInput, callback){
 }
 
 function upsertComponentFiles(callback){
-	log('we upserting files');
+	log('entering upsertComponentFiles');
 	var bundlesToCreate = dependencyMap[process.argv[2]];
 	async.eachSeries(bundlesToCreate, function(bundle, callback){
 		if(isApex(bundle)){
@@ -93,7 +93,7 @@ function upsertComponentFiles(callback){
 			
 		} else {
 			var tmpBundleInfo = {
-				name: bundle, // my description
+				name: bundle,
 					description: 'I was created from Strike-CLI'
 			};
 
@@ -167,7 +167,7 @@ function downloadDependencyMap(callback){
 }
 
 function downloadTargetComponents(callback, targetComponents){
-	log('before downloadTargetComponents');
+	log('entering downloadTargetComponents');
 
 	if(dependencyMap.hasOwnProperty(process.argv[2])){
 		var targetComponents = dependencyMap[process.argv[2]];
@@ -189,7 +189,6 @@ function isApex(fileName){
 
 function downloadComponentBundle(componentName){
 	if(isApex(componentName)){
-		log(componentName + ' is an apex class');
 		downloadFile(componentName, 'APEX');
 	} else {
 		fs.mkdirSync(process.cwd() + "/strike-components/" + componentName);
@@ -344,19 +343,12 @@ function createApexClass(bundle, callback){
 		}, function(err, res){
 			if(err){
 				if(err.errorCode === 'DUPLICATE_VALUE'){
-					log('we had a duplicate value error');
-
 					conn.tooling.query("SELECT Id, Name FROM ApexClass WHERE Name = " + "'" + bundle.substring(0, bundle.length - 4) + "'", function(err, res){
 						if (err) { return console.error(chalk.red(err)); }
-						log(res);
-						log(res.records[0].Id + ' is the existing ID');
 						var fileId = res.records[0].Id; 
 						log(chalk.blue('we get here right before running the callback'));
 						conn.tooling.sobject('ApexClassMember').update({Id: fileId, Body: contents}, function(err, res){
 							log(chalk.blue('we dont get here right after running the callback'));
-							log(err);
-							log(res);
-							log('we are after calling update');
 							if(err){
 								console.log(err);
 								callback();	
@@ -371,7 +363,6 @@ function createApexClass(bundle, callback){
 				console.log(bundle + ' was created');
 				callback();	
 			}
-			
 		});
 	})
 }
@@ -394,7 +385,6 @@ function createAuraDefinitionBundle(inputArgs, callback){
 					bundleId = res.records[0].Id;
 
 					upsertFiles(bundleId, inputArgs, function(){
-						log('upsertFiles Ran');
 						callback();
 					});
 				});
@@ -406,7 +396,6 @@ function createAuraDefinitionBundle(inputArgs, callback){
 			bundleId = res.id;
 
 			upsertFiles(bundleId, inputArgs, function(){
-				log('upsertFiles Ran');
 				callback();
 			});
 		}
@@ -430,7 +419,6 @@ function createStaticResource(name){
 			log(err);
 		} else {
 			var encodedBody = new Buffer(contents).toString('base64');
-			log('we now have the body');
 		}
 
 		conn.tooling.sobject('StaticResource').create({
