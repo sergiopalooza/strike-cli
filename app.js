@@ -323,7 +323,8 @@ function upsertFiles(bundleId, inputArgs, callback){
 	if(isEvent(inputArgs.name)){
 		upsertComponentFile(bundleId, inputArgs, 'EVENT');	
 	} else if(isToken(inputArgs.name)){
-		upsertComponentFile(bundleId, inputArgs, 'TOKENS')
+		upsertComponentFile(bundleId, inputArgs, 'TOKENS');
+		// upsertTokenFile(bundleId, inputArgs, 'TOKENS');
 	} else{
 		upsertComponentFile(bundleId, inputArgs, 'COMPONENT');
 		upsertComponentFile(bundleId, inputArgs, 'CONTROLLER');
@@ -461,6 +462,68 @@ function createComponentFile(bundleId, inputArgs, type){
 				Source: contents
 			}, function(err, res){
 				if (err) { return console.error(err + '!!!!'); }
+			});
+		}
+	})
+}
+
+function upsertTokenFile(bundleId, inputArgs, type){
+	log(chalk.red('are we over here?'));
+
+	log('upserting ' + type + ' file for ' + inputArgs.name);
+	log(chalk.red('upserting ' + type + ' file for ' + inputArgs.name));
+		fs.readFile(process.cwd() + '/strike-components/' + inputArgs.name + '/' + inputArgs.name + fileExtensionMap[type], 'utf8', function(err, contents){
+			log('reading from ' + process.cwd() + '/strike-components/' + inputArgs.name + '/' + inputArgs.name + fileExtensionMap[type]);
+		if(validContent(contents)){
+			conn.tooling.sobject('AuraDefinition').create({
+				AuraDefinitionBundleId: bundleId,
+				DefType: type,
+				Format: fileFormatMap[type],
+				Source: contents
+			}, function(err, res){
+				if (err) {
+					if(err.errorCode === 'DUPLICATE_VALUE'){
+						log(chalk.red('we have an error trying to insert a duplicate TOKEN file'));
+						conn.tooling.query("Select Id, AuraDefinitionBundleId, DefType, SOURCE FROM AuraDefinition WHERE AuraDefinitionBundleId ='" + bundleId + "'" + "AND DefType ='"+ type + "'", function(err, res){
+							if (err) { return console.error(chalk.red(err)); }
+
+							log(res.records[0].Id + ' is the existing ID');
+							var fileId = res.records[0].Id; 
+
+							// Extracting body of local file
+							var regexForTokenBody = /<\/?aura:tokens.*>/g;
+							log('before regex')
+							var snippetToInsert = contents.replace(regexForTokenBody, '');
+							log('here is the snippet we will insert');
+							log(snippetToInsert);
+
+
+							// Extracting head of remote file
+							var existingSource = res.records[0].Source;
+							var regexForHeader = /<aura:tokens.+\>/g;
+							var existingSourceHeader = contents.match(regexForHeader, existingSource);
+
+							var newSource = existingSource.replace(regexForHeader, existingSourceHeader + snippetToInsert);
+							log('spencers suggestion');
+							log(newSource);
+
+							conn.tooling.sobject('AuraDefinition').update({Id: fileId, Source: newSource}, function(err, res){
+								log('did our callback finish??');
+								if (err) { 
+									log(chalk.red('we have an error in the callback'));
+									console.error(err); 
+								} else {
+									log(chalk.red('we should have a response from the callback'));
+									console.log(type + ' file for ' + inputArgs.name + ' ' + type + ' was updated!!!!!!!!!>>!>@@');
+								}
+							});
+						});
+					} else {
+						return console.error(err);	
+					}
+				} else{
+					console.log(type + ' file for ' + inputArgs.name + ' ' + type + ' was created');
+				}
 			});
 		}
 	})
