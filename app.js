@@ -48,8 +48,7 @@ if(disconnectCommandExists()){
 		saveUserInput(userInput.username, userInput.password);
 		console.log('Credentials for ' + userInput.username + ' connected');
 	});
-} else {
-	configureHelpCommand();
+} else if(upsertCommandExists()){
 	drawScreen();
 	createStrikeComponentFolder();
 	prompt.start();
@@ -62,7 +61,13 @@ if(disconnectCommandExists()){
 	], function(err, result){
 		deleteFolderRecursive(process.cwd() + "/strike-components");
 	});
+} else{
+	configureHelpCommand();
+	console.log(process.argv[2] + ' is not a valid command');
+	commander.outputHelp();
 }
+
+
 
 function getUserInput(callback){
 	log('entering getUserInput');
@@ -83,7 +88,7 @@ function login(userInput, callback){
 
 function upsertComponentFiles(callback){
 	log('entering upsertComponentFiles');
-	var bundlesToCreate = dependencyMap[process.argv[2]];
+	var bundlesToCreate = dependencyMap[process.argv[3]];
 	async.eachSeries(bundlesToCreate, function(bundle, callback){
 		if(isApex(bundle)){
 			log('we are not creating a bundle, we need to create an apex class instead');
@@ -130,6 +135,10 @@ function disconnectCommandExists() {
 	return process.argv[2] == 'disconnect';
 }
 
+function upsertCommandExists(){
+	return process.argv[2] == 'install' || process.argv[2] == 'update' || process.argv[2] == 'upsert';
+}
+
 function intializeDatabase (){
 	db.defaults({ credentials: []})
 		.value();	
@@ -169,8 +178,8 @@ function downloadDependencyMap(callback){
 function downloadTargetComponents(callback, targetComponents){
 	log('entering downloadTargetComponents');
 
-	if(dependencyMap.hasOwnProperty(process.argv[2])){
-		var targetComponents = dependencyMap[process.argv[2]];
+	if(dependencyMap.hasOwnProperty(process.argv[3])){
+		var targetComponents = dependencyMap[process.argv[3]];
 
 		targetComponents.forEach(function(componentName){
 			downloadComponentBundle(componentName);
@@ -178,7 +187,7 @@ function downloadTargetComponents(callback, targetComponents){
 		
 		callback(null);
 	} else {
-		console.log('Sorry, ' + process.argv[2] + ' is not a supported component');
+		console.log('Sorry, ' + process.argv[3] + ' is not a supported component');
 	}
 }
 
@@ -284,7 +293,7 @@ function createUserInputObj(promptResponse){
 		username: promptResponse.username || db.get('credentials').find({ id: 1 }).value().username,
 		password: promptResponse.password || db.get('credentials').find({ id: 1 }).value().password,
 		bundleInfo: {
-			name: promptResponse.componentName || process.argv[2],
+			name: promptResponse.componentName || process.argv[3],
 			description: promptResponse.inputDescription || 'I was created from Strike-CLI'
 		}
 	};
@@ -582,12 +591,14 @@ function generateRandomComponentName(){
 function configureHelpCommand(){
 	drawScreen();
 	commander
-		.usage('<component_name> [options]')
-		.option('-v, --verbose', 'verbose mode for development')
-		.option('connect', 'connect/store credentials')
-		.option('disconnect', 'disconnects stored credentials');
+		.usage('<command> [component_name]')
+		.command('install', 'upsert specified component and dependencies to your org')
+		.command('update', 'upsert specified component and dependencies to your org')
+		.command('upsert', 'upsert specified component and dependencies to your org')
+		.command('connect', 'connect/store credentials')
+		.command('disconnect', 'disconnects stored credentials')
+		.option('-v, --verbose', 'verbose mode for development');
 		
-
 	commander.on('--help', function(){
 		console.log('  Supported Components:');
 		console.log('');
