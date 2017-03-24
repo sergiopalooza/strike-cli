@@ -333,7 +333,6 @@ function upsertFiles(bundleId, inputArgs, callback){
 	if(isEvent(inputArgs.name)){
 		upsertComponentFile(bundleId, inputArgs, 'EVENT');	
 	} else if(isToken(inputArgs.name)){
-		// upsertComponentFile(bundleId, inputArgs, 'TOKENS');
 		upsertTokenFile(bundleId, inputArgs, 'TOKENS');
 	} else{
 		upsertComponentFile(bundleId, inputArgs, 'COMPONENT');
