@@ -349,7 +349,7 @@ function createApexClass(bundle, callback){
 			if(err){
 				if(err.errorCode === 'DUPLICATE_VALUE'){
 					async.waterfall([
-						function(callback){
+						function queryForApexClassId(callback){
 							log(chalk.cyan('Querying for Apex ID'));
 							conn.tooling.query("SELECT Id, Name FROM ApexClass WHERE Name = " + "'" + bundle.substring(0, bundle.length - 4) + "'", function(err, res){
 								if (err) { return console.error(chalk.red(err)); }
@@ -357,7 +357,7 @@ function createApexClass(bundle, callback){
 								callback(null, fileId) ;
 							});
 						},
-						function(fileId, callback){
+						function createMetaDataContainer(fileId, callback){
 							log(chalk.cyan('Creating MetaDataContainer'));
 							conn.tooling.sobject('MetaDataContainer').create({
 								Name: generateRandomName('Container')
@@ -368,7 +368,7 @@ function createApexClass(bundle, callback){
 								callback(null, fileId, metaDataContainerId);
 							});
 						},
-						function(fileId, metaDataContainerId, callback){
+						function createApexClassMember(fileId, metaDataContainerId, callback){
 							log(chalk.cyan('Creating ApexClassMember'));
 							conn.tooling.sobject('ApexClassMember').create({
 								MetaDataContainerId: metaDataContainerId,
@@ -380,7 +380,7 @@ function createApexClass(bundle, callback){
 								callback(null, metaDataContainerId);
 							});
 						},
-						function(metaDataContainerId, callback){
+						function createContainerAsyncRequest(metaDataContainerId, callback){
 							log(chalk.cyan('Creating containerAsyncRequest'));
 							conn.tooling.sobject('containerAsyncRequest').create({
 								MetaDataContainerId: metaDataContainerId,
