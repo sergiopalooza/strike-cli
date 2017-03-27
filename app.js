@@ -68,8 +68,6 @@ if(doesCommandExist('disconnect')){
 	commander.outputHelp();
 }
 
-
-
 function getUserInput(callback){
 	log('entering getUserInput');
 	prompt.get(configurePromptSchema(), function (err, res){
@@ -133,6 +131,7 @@ function doesCommandExist(command){
 }
 
 function upsertCommandExists(){
+
 	return process.argv[2] == 'install' || process.argv[2] == 'update' || process.argv[2] == 'upsert';
 }
 
@@ -249,6 +248,7 @@ function downloadFile(fileName, fileExtension){
 }
 
 function validContent(body){
+
 	return body != '404: Not Found\n'
 }
 
@@ -337,7 +337,6 @@ function upsertFiles(bundleId, inputArgs, callback){
 	
 	callback();
 }
-
 
 function createApexClass(bundle, callback){
 	console.log('upserting ' + bundle);
@@ -442,6 +441,7 @@ function isEvent(name){
 	
 	return name.substring(0,10) === 'strike_evt';
 }
+
 function isToken(name){
 	
 	return name === 'defaultTokens';
