@@ -495,7 +495,7 @@ function createComponentFile(bundleId, inputArgs, type){
 				Format: fileFormatMap[type],
 				Source: contents
 			}, function(err, res){
-				if (err) { return console.error(err + '!!!!'); }
+				if (err) { return console.error(err); }
 			});
 		}
 	})
