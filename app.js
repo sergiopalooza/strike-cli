@@ -155,7 +155,6 @@ function createStrikeComponentFolder(){
 	fs.existsSync(process.cwd() + "/strike-components") || fs.mkdirSync(process.cwd() + "/strike-components");	
 }
 
-
 function downloadDependencyMap(callback){
 	http.get(REPO_BASE_URL + '/dependency.json', function(response){
 		if (response.statusCode !== 200) { return console.error(chalk.red(err)); }
@@ -203,13 +202,19 @@ function downloadComponentBundle(componentName){
 			downloadFile('d3', 'RESOURCE');
 		}
 
-		downloadFile(componentName, 'COMPONENT');
-		downloadFile(componentName, 'CONTROLLER');
-		downloadFile(componentName, 'HELPER');
-		downloadFile(componentName, 'RENDERER');
-		downloadFile(componentName, 'EVENT');
-		downloadFile(componentName, 'STYLE');
-		downloadFile(componentName, 'TOKENS');
+		var typeArray = ['COMPONENT', 'CONTROLLER', 'HELPER', 'RENDERER', 'EVENT', 'STYLE', 'TOKENS'];
+
+		typeArray.forEach(function(type){
+			downloadFile(componentName, type);
+		});
+
+		// downloadFile(componentName, 'COMPONENT');
+		// downloadFile(componentName, 'CONTROLLER');
+		// downloadFile(componentName, 'HELPER');
+		// downloadFile(componentName, 'RENDERER');
+		// downloadFile(componentName, 'EVENT');
+		// downloadFile(componentName, 'STYLE');
+		// downloadFile(componentName, 'TOKENS');
 	}
 }
 
