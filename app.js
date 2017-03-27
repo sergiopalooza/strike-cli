@@ -94,6 +94,7 @@ function upsertComponentFiles(callback){
 		if(isApex(bundle)){
 			log('we are not creating a bundle, we need to create an apex class instead');
 			createApexClass(bundle, function(){
+				console.log(bundle + ' was updated');
 				callback(null);	
 			});
 			
@@ -345,29 +346,61 @@ function upsertFiles(bundleId, inputArgs, callback){
 	callback();
 }
 
+
 function createApexClass(bundle, callback){
-	log('upserting ' + bundle);
+	console.log('upserting ' + bundle);
 	fs.readFile(process.cwd() + '/strike-components/' + bundle, 'utf8', function(err, contents){
 		conn.tooling.sobject('ApexClass').create({
 			body: contents
 		}, function(err, res){
+			log(err);
 			if(err){
 				if(err.errorCode === 'DUPLICATE_VALUE'){
-					log('we have an error trying to insert a duplicate file');
-					conn.tooling.query("SELECT Id, Name FROM ApexClass WHERE Name = " + "'" + bundle.substring(0, bundle.length - 4) + "'", function(err, res){
-						if (err) { return console.error(chalk.red(err)); }
-						var fileId = res.records[0].Id; 
-						log(chalk.blue('we get here right before running the callback'));
-						conn.tooling.sobject('ApexClassMember').update({Id: fileId, Body: contents}, function(err, res){
-							log(chalk.blue('we dont get here right after running the callback'));
-							if(err){
-								console.log(err);
-								callback();	
-							} else {
-								console.log(bundle + ' was updated');
-								callback();	
-							}
-						});
+					async.waterfall([
+						function(callback){
+							log(chalk.cyan('Querying for Apex ID'));
+							conn.tooling.query("SELECT Id, Name FROM ApexClass WHERE Name = " + "'" + bundle.substring(0, bundle.length - 4) + "'", function(err, res){
+								if (err) { return console.error(chalk.red(err)); }
+								var fileId = res.records[0].Id;
+								callback(null, fileId) ;
+							});
+						},
+						function(fileId, callback){
+							log(chalk.cyan('Creating MetaDataContainer'));
+							conn.tooling.sobject('MetaDataContainer').create({
+								Name: generateRandomName('Container')
+							}, function(err, res){
+								if (err) { return console.error(chalk.red(err)); }
+								log(res);
+								var metaDataContainerId = res.id;
+								callback(null, fileId, metaDataContainerId);
+							});
+						},
+						function(fileId, metaDataContainerId, callback){
+							log(chalk.cyan('Creating ApexClassMember'));
+							conn.tooling.sobject('ApexClassMember').create({
+								MetaDataContainerId: metaDataContainerId,
+								ContentEntityId: fileId,
+								Body: contents
+							}, function(err, res){
+								if (err) { return console.error(chalk.red(err)); }
+								log(res);
+								callback(null, metaDataContainerId);
+							});
+						},
+						function(metaDataContainerId, callback){
+							log(chalk.cyan('Creating containerAsyncRequest'));
+							conn.tooling.sobject('containerAsyncRequest').create({
+								MetaDataContainerId: metaDataContainerId,
+								isCheckOnly: 'false'
+							}, function(err, res){
+								if (err) { return console.error(chalk.red(err)); }
+								log(res);
+								callback(null, res);
+							})
+						}
+					], function(err, results){
+						callback();
 					});
 				}
 			} else{
@@ -478,7 +511,6 @@ function createComponentFile(bundleId, inputArgs, type){
 
 function upsertTokenFile(bundleId, inputArgs, type){
 	log('upserting ' + type + ' file for ' + inputArgs.name);
-	log(chalk.red('upserting ' + type + ' file for ' + inputArgs.name));
 		fs.readFile(process.cwd() + '/strike-components/' + inputArgs.name + '/' + inputArgs.name + fileExtensionMap[type], 'utf8', function(err, contents){
 			log('reading from ' + process.cwd() + '/strike-components/' + inputArgs.name + '/' + inputArgs.name + fileExtensionMap[type]);
 		if(validContent(contents)){
@@ -568,7 +600,7 @@ function mergeTokenFile (originalContent, linesToInsertArray) {
 	return mergedSource;
 }
 
-function generateRandomComponentName(){
+function generateRandomName(prefix){
 	var date = new Date();
 	var dateComponents = [
 	    date.getSeconds(),
@@ -576,8 +608,8 @@ function generateRandomComponentName(){
 	];
 
 	var randomInt = dateComponents.join("");
-	var componentName = 'Prototype_Component' + randomInt;
-	return componentName;
+	var randomName = prefix + randomInt;
+	return randomName;
 }
 
 function configureHelpCommand(){
