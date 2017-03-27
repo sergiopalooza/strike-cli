@@ -213,15 +213,17 @@ function downloadFile(fileName, fileExtension){
 	var fileSource;
 	var fileDestination;
 
+	var defaultPermissions = 0o755;
+
 	if(fileExtension === 'RESOURCE'){
 		fileSource = REPO_BASE_URL + "/staticresources/" + fileName + fileExtensionMap[fileExtension];
-		fileDestination = fs.createWriteStream(process.cwd() + "/strike-components/" + fileName + fileExtensionMap[fileExtension], {flags: 'w', mode: 0755});
+		fileDestination = fs.createWriteStream(process.cwd() + "/strike-components/" + fileName + fileExtensionMap[fileExtension], {flags: 'w', mode: defaultPermissions});
 	} else if(fileExtension === 'APEX'){
 		fileSource = REPO_BASE_URL + "/classes/" + fileName;
-		fileDestination = fs.createWriteStream(process.cwd() + "/strike-components/" + fileName, {flags: 'w', mode: 0755});
+		fileDestination = fs.createWriteStream(process.cwd() + "/strike-components/" + fileName, {flags: 'w', mode: defaultPermissions});
 	} else {
 		fileSource = REPO_BASE_URL + "/aura/" + fileName + "/" + fileName + fileExtensionMap[fileExtension]
-		fileDestination = fs.createWriteStream(process.cwd() + "/strike-components/" + fileName + "/" + fileName + fileExtensionMap[fileExtension], {flags: 'w', mode: 0755});
+		fileDestination = fs.createWriteStream(process.cwd() + "/strike-components/" + fileName + "/" + fileName + fileExtensionMap[fileExtension], {flags: 'w', mode: defaultPermissions});
 	}
 
 	async.waterfall([

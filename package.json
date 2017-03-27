@@ -23,5 +23,8 @@
     "lowdb": "^0.14.0",
     "preferences": "^0.2.1",
     "prompt": "^1.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^3.18.0"
   }
 }
