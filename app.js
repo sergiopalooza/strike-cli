@@ -12,7 +12,7 @@ var async = require('async');
 var commander = require('commander');
 var tokenParser = require('./tokenParser.js');
 
-const REPO_BASE_URL = "https://raw.githubusercontent.com/appiphony/Strike-Components/master";
+const REPO_BASE_URL = 'https://raw.githubusercontent.com/appiphony/Strike-Components/master';
 
 const fileExtensionMap = {
 		COMPONENT: '.cmp',
@@ -41,7 +41,7 @@ var conn = new jsforce.Connection();
 intializeDatabase();
 
 if(doesCommandExist('disconnect')){
-	fs.unlinkSync(process.cwd() + "/db.json");
+	fs.unlinkSync(process.cwd() + '/db.json');
 	console.log('Credentials have been disconnected');
 } else if(doesCommandExist('connect')){
 	prompt.start();
@@ -60,7 +60,7 @@ if(doesCommandExist('disconnect')){
 		login,
 		upsertComponentFiles,
 	], function(err, result){
-		deleteFolderRecursive(process.cwd() + "/strike-components");
+		deleteFolderRecursive(process.cwd() + '/strike-components');
 	});
 } else{
 	configureHelpCommand();
@@ -150,8 +150,8 @@ function drawScreen(){
 }
 
 function createStrikeComponentFolder(){
-	deleteFolderRecursive(process.cwd() + "/strike-components"); //uncomment if you want to create the folder everytime
-	fs.existsSync(process.cwd() + "/strike-components") || fs.mkdirSync(process.cwd() + "/strike-components");	
+	deleteFolderRecursive(process.cwd() + '/strike-components'); //uncomment if you want to create the folder everytime
+	fs.existsSync(process.cwd() + '/strike-components') || fs.mkdirSync(process.cwd() + '/strike-components');	
 }
 
 function downloadDependencyMap(callback){
@@ -195,7 +195,7 @@ function downloadComponentBundle(componentName){
 	if(isApex(componentName)){
 		downloadFile(componentName, 'APEX');
 	} else {
-		fs.mkdirSync(process.cwd() + "/strike-components/" + componentName);
+		fs.mkdirSync(process.cwd() + '/strike-components/' + componentName);
 
 		if(requiresD3(componentName)){
 			downloadFile('d3', 'RESOURCE');
@@ -216,14 +216,14 @@ function downloadFile(fileName, fileExtension){
 	var defaultPermissions = 0o755;
 
 	if(fileExtension === 'RESOURCE'){
-		fileSource = REPO_BASE_URL + "/staticresources/" + fileName + fileExtensionMap[fileExtension];
-		fileDestination = fs.createWriteStream(process.cwd() + "/strike-components/" + fileName + fileExtensionMap[fileExtension], {flags: 'w', mode: defaultPermissions});
+		fileSource = REPO_BASE_URL + '/staticresources/' + fileName + fileExtensionMap[fileExtension];
+		fileDestination = fs.createWriteStream(process.cwd() + '/strike-components/' + fileName + fileExtensionMap[fileExtension], {flags: 'w', mode: defaultPermissions});
 	} else if(fileExtension === 'APEX'){
-		fileSource = REPO_BASE_URL + "/classes/" + fileName;
-		fileDestination = fs.createWriteStream(process.cwd() + "/strike-components/" + fileName, {flags: 'w', mode: defaultPermissions});
+		fileSource = REPO_BASE_URL + '/classes/' + fileName;
+		fileDestination = fs.createWriteStream(process.cwd() + '/strike-components/' + fileName, {flags: 'w', mode: defaultPermissions});
 	} else {
-		fileSource = REPO_BASE_URL + "/aura/" + fileName + "/" + fileName + fileExtensionMap[fileExtension]
-		fileDestination = fs.createWriteStream(process.cwd() + "/strike-components/" + fileName + "/" + fileName + fileExtensionMap[fileExtension], {flags: 'w', mode: defaultPermissions});
+		fileSource = REPO_BASE_URL + '/aura/' + fileName + '/' + fileName + fileExtensionMap[fileExtension]
+		fileDestination = fs.createWriteStream(process.cwd() + '/strike-components/' + fileName + '/' + fileName + fileExtensionMap[fileExtension], {flags: 'w', mode: defaultPermissions});
 	}
 
 	async.waterfall([
@@ -256,7 +256,7 @@ function validContent(body){
 
 function doesComponentFolderExist(){
 
-	return fs.existsSync(process.cwd() + "/strike-components"); 
+	return fs.existsSync(process.cwd() + '/strike-components'); 
 }
 
 function configurePromptSchema(){
@@ -307,7 +307,7 @@ function deleteFolderRecursive(path) {
     if( fs.existsSync(path) ) {
         files = fs.readdirSync(path);
         files.forEach(function(file,index){
-            var curPath = path + "/" + file;
+            var curPath = path + '/' + file;
             if(fs.lstatSync(curPath).isDirectory()) { // recurse
                 deleteFolderRecursive(curPath);
             } else { // delete file
