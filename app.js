@@ -59,7 +59,8 @@ if(doesCommandExist('disconnect')){
 		getUserInput,
 		login,
 		upsertComponentFiles,
-	], function(err, result){
+	], function(err){
+		if (err) { return console.error(chalk.red(err)); }
 		deleteFolderRecursive(process.cwd() + '/strike-components');
 	});
 } else{
