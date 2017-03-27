@@ -202,19 +202,11 @@ function downloadComponentBundle(componentName){
 			downloadFile('d3', 'RESOURCE');
 		}
 
-		var typeArray = ['COMPONENT', 'CONTROLLER', 'HELPER', 'RENDERER', 'EVENT', 'STYLE', 'TOKENS'];
+		var fileTypes = ['COMPONENT', 'CONTROLLER', 'HELPER', 'RENDERER', 'EVENT', 'STYLE', 'TOKENS'];
 
-		typeArray.forEach(function(type){
-			downloadFile(componentName, type);
+		fileTypes.forEach(function(fileType){
+			downloadFile(componentName, fileType);
 		});
-
-		// downloadFile(componentName, 'COMPONENT');
-		// downloadFile(componentName, 'CONTROLLER');
-		// downloadFile(componentName, 'HELPER');
-		// downloadFile(componentName, 'RENDERER');
-		// downloadFile(componentName, 'EVENT');
-		// downloadFile(componentName, 'STYLE');
-		// downloadFile(componentName, 'TOKENS');
 	}
 }
 
@@ -336,11 +328,11 @@ function upsertFiles(bundleId, inputArgs, callback){
 	} else if(isToken(inputArgs.name)){
 		upsertTokenFile(bundleId, inputArgs, 'TOKENS');
 	} else{
-		upsertComponentFile(bundleId, inputArgs, 'COMPONENT');
-		upsertComponentFile(bundleId, inputArgs, 'CONTROLLER');
-		upsertComponentFile(bundleId, inputArgs, 'HELPER');
-		upsertComponentFile(bundleId, inputArgs, 'RENDERER');
-		upsertComponentFile(bundleId, inputArgs, 'STYLE');
+		var fileTypes = ['COMPONENT', 'CONTROLLER', 'HELPER', 'RENDERER', 'EVENT', 'STYLE'];
+
+		fileTypes.forEach(function(fileType){
+			upsertComponentFile(bundleId, inputArgs, fileType)
+		});
 	}
 	
 	callback();
