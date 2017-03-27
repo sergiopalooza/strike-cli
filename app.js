@@ -80,7 +80,7 @@ function getUserInput(callback){
 
 function login(userInput, callback){
 	log('entering login');
-	conn.login(userInput.username, userInput.password, function(err, res) {
+	conn.login(userInput.username, userInput.password, function(err) {
 		if (err) { return console.error(chalk.red(err)); }
 		callback(null);
 	});
