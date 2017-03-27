@@ -113,10 +113,10 @@ function upsertComponentFiles(callback){
 			
 	}, function(err){
 		if(err) {
-	      callback(null, err);
-	    } else {
-	      callback(null, 'done');
-	    }
+			callback(null, err);
+		} else {
+			callback(null, 'done');
+		}
 	});
 }
 
@@ -143,9 +143,9 @@ function intializeDatabase (){
 function drawScreen(){
 	clear();
 	console.log(
-	  chalk.cyan(
-	    figlet.textSync('Strike-CLI', { horizontalLayout: 'full' })
-	  )
+		chalk.cyan(
+			figlet.textSync('Strike-CLI', { horizontalLayout: 'full' })
+		)
 	);
 }
 
@@ -407,9 +407,9 @@ function createApexClass(bundle, callback){
 function createAuraDefinitionBundle(inputArgs, callback){
 	conn.tooling.sobject('AuraDefinitionBundle').create({
 		Description: inputArgs.description, // my description
-	  	DeveloperName: inputArgs.name,
-	  	MasterLabel: inputArgs.name, 
-	  	ApiVersion:'36.0'
+		DeveloperName: inputArgs.name,
+		MasterLabel: inputArgs.name, 
+		ApiVersion:'36.0'
 	}, 	function(err, res){
 		
 		var bundleId;
@@ -477,12 +477,12 @@ function createStaticResource(name){
 function createApplication(bundleId){
 	conn.tooling.sobject('AuraDefinition').create({
 		AuraDefinitionBundleId: bundleId,
-	    DefType: 'APPLICATION',
-	    Format: 'XML',
-	    Source: '<aura:application></aura:application>'
-	  }, function(err, res) {
-	  if (err) { return console.error(err); }
-	  console.log(res);
+		DefType: 'APPLICATION',
+		Format: 'XML',
+		Source: '<aura:application></aura:application>'
+	}, function(err, res) {
+		if (err) { return console.error(err); }
+		console.log(res);
 	});
 }
 
@@ -597,8 +597,8 @@ function mergeTokenFile (originalContent, linesToInsertArray) {
 function generateRandomName(prefix){
 	var date = new Date();
 	var dateComponents = [
-	    date.getSeconds(),
-	    date.getMilliseconds()
+		date.getSeconds(),
+		date.getMilliseconds()
 	];
 
 	var randomInt = dateComponents.join("");
