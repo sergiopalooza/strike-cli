@@ -15,25 +15,25 @@ var tokenParser = require('./tokenParser.js');
 const REPO_BASE_URL = 'https://raw.githubusercontent.com/appiphony/Strike-Components/master';
 
 const fileExtensionMap = {
-		COMPONENT: '.cmp',
-		CONTROLLER: 'Controller.js',
-		HELPER: 'Helper.js',
-		RENDERER: 'Renderer.js',
-		EVENT: '.evt',
-		RESOURCE: '.resource',
-		STYLE: '.css',
-		TOKENS: '.tokens'
-	};
+	COMPONENT: '.cmp',
+	CONTROLLER: 'Controller.js',
+	HELPER: 'Helper.js',
+	RENDERER: 'Renderer.js',
+	EVENT: '.evt',
+	RESOURCE: '.resource',
+	STYLE: '.css',
+	TOKENS: '.tokens'
+};
 
 const fileFormatMap = {
-		COMPONENT: 'XML',
-		CONTROLLER: 'JS',
-		HELPER: 'JS',
-		RENDERER: 'JS',
-		EVENT: 'XML',
-		TOKENS: 'XML',
-		STYLE: 'CSS'
-	};
+	COMPONENT: 'XML',
+	CONTROLLER: 'JS',
+	HELPER: 'JS',
+	RENDERER: 'JS',
+	EVENT: 'XML',
+	TOKENS: 'XML',
+	STYLE: 'CSS'
+};
 
 var dependencyMap;
 var conn = new jsforce.Connection();
@@ -99,7 +99,7 @@ function upsertComponentFiles(callback){
 		} else {
 			var tmpBundleInfo = {
 				name: bundle,
-					description: 'I was created from Strike-CLI'
+				description: 'I was created from Strike-CLI'
 			};
 
 			if(requiresD3(bundle)){
@@ -228,7 +228,7 @@ function downloadFile(fileName, fileExtension){
 
 	async.waterfall([
 		function requestFile(callback){
-				http.get(fileSource, function(response) {
+			http.get(fileSource, function(response) {
 				callback(null, response);
 			});
 		},
@@ -303,20 +303,20 @@ function saveUserInput(username, password){
 }
 
 function deleteFolderRecursive(path) {
-    var files = [];
-    if( fs.existsSync(path) ) {
-        files = fs.readdirSync(path);
-        files.forEach(function(file,index){
-            var curPath = path + '/' + file;
-            if(fs.lstatSync(curPath).isDirectory()) { // recurse
-                deleteFolderRecursive(curPath);
-            } else { // delete file
-                fs.unlinkSync(curPath);
-                log('deleted ' + curPath);
-            }
-        });
-        fs.rmdirSync(path);
-    }
+	var files = [];
+	if( fs.existsSync(path) ) {
+		files = fs.readdirSync(path);
+		files.forEach(function(file,index){
+			var curPath = path + '/' + file;
+			if(fs.lstatSync(curPath).isDirectory()) { // recurse
+				deleteFolderRecursive(curPath);
+			} else { // delete file
+				fs.unlinkSync(curPath);
+				log('deleted ' + curPath);
+			}
+		});
+		fs.rmdirSync(path);
+	}
 }
 
 function bundleExists(response){
@@ -488,8 +488,8 @@ function createApplication(bundleId){
 
 function createComponentFile(bundleId, inputArgs, type){
 	log('creating ' + type + ' file for ' + inputArgs.name);
-		fs.readFile(process.cwd() + '/strike-components/' + inputArgs.name + '/' + inputArgs.name + fileExtensionMap[type], 'utf8', function(err, contents){
-			log(process.cwd() + '/strike-components/' + inputArgs.name + '/' + inputArgs.name + fileExtensionMap[type]);
+	fs.readFile(process.cwd() + '/strike-components/' + inputArgs.name + '/' + inputArgs.name + fileExtensionMap[type], 'utf8', function(err, contents){
+		log(process.cwd() + '/strike-components/' + inputArgs.name + '/' + inputArgs.name + fileExtensionMap[type]);
 		if(validContent(contents)){
 			conn.tooling.sobject('AuraDefinition').create({
 				AuraDefinitionBundleId: bundleId,
@@ -505,8 +505,8 @@ function createComponentFile(bundleId, inputArgs, type){
 
 function upsertTokenFile(bundleId, inputArgs, type){
 	log('upserting ' + type + ' file for ' + inputArgs.name);
-		fs.readFile(process.cwd() + '/strike-components/' + inputArgs.name + '/' + inputArgs.name + fileExtensionMap[type], 'utf8', function(err, contents){
-			log('reading from ' + process.cwd() + '/strike-components/' + inputArgs.name + '/' + inputArgs.name + fileExtensionMap[type]);
+	fs.readFile(process.cwd() + '/strike-components/' + inputArgs.name + '/' + inputArgs.name + fileExtensionMap[type], 'utf8', function(err, contents){
+		log('reading from ' + process.cwd() + '/strike-components/' + inputArgs.name + '/' + inputArgs.name + fileExtensionMap[type]);
 		if(validContent(contents)){
 			var strikeContents = contents;
 			conn.tooling.sobject('AuraDefinition').create({
@@ -549,8 +549,8 @@ function upsertTokenFile(bundleId, inputArgs, type){
 
 function upsertComponentFile(bundleId, inputArgs, type){
 	log('upserting ' + type + ' file for ' + inputArgs.name);
-		fs.readFile(process.cwd() + '/strike-components/' + inputArgs.name + '/' + inputArgs.name + fileExtensionMap[type], 'utf8', function(err, contents){
-			log('reading from ' + process.cwd() + '/strike-components/' + inputArgs.name + '/' + inputArgs.name + fileExtensionMap[type]);
+	fs.readFile(process.cwd() + '/strike-components/' + inputArgs.name + '/' + inputArgs.name + fileExtensionMap[type], 'utf8', function(err, contents){
+		log('reading from ' + process.cwd() + '/strike-components/' + inputArgs.name + '/' + inputArgs.name + fileExtensionMap[type]);
 		if(validContent(contents)){
 			conn.tooling.sobject('AuraDefinition').create({
 				AuraDefinitionBundleId: bundleId,
