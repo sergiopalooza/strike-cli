@@ -40,10 +40,10 @@ var conn = new jsforce.Connection();
 
 intializeDatabase();
 
-if(disconnectCommandExists()){
+if(doesCommandExist('disconnect')){
 	fs.unlinkSync(process.cwd() + "/db.json");
 	console.log('Credentials have been disconnected');
-} else if(connectCommandExists()){
+} else if(doesCommandExist('connect')){
 	prompt.start();
 	getUserInput(function(callback, userInput){
 		saveUserInput(userInput.username, userInput.password);
@@ -127,14 +127,9 @@ function requiresD3(bundle){
 	return bundle === 'strike_chart';
 }
 
-function connectCommandExists() {
+function doesCommandExist(command){
 
-	return process.argv[2] == 'connect';
-}
-
-function disconnectCommandExists() {
-
-	return process.argv[2] == 'disconnect';
+	return process.argv[2] === command;
 }
 
 function upsertCommandExists(){
