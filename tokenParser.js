@@ -1,8 +1,10 @@
 exports.createLinesToInsert = function (strikeToken, remoteToken){
-	var matches = strikeToken.match(/^\s*<aura:token\s(\n|.)*?\/>/gm);  //these are the token elements we have found
+	var tokenElementRegex = /^\s*<aura:token\s(\n|.)*?\/>/gm;
+	
+	var matches = strikeToken.match(tokenElementRegex);  //these are the token elements we have found
 	var ourTokenMap = createMapfromTokenMatches(matches);
 
-	var theirMatches = remoteToken.match(/^\s*<aura:token\s(\n|.)*?\/>/gm);  //these are the token elements we have found 
+	var theirMatches = remoteToken.match(tokenElementRegex);  //these are the token elements we have found 
 	var theirTokenMap = createMapfromTokenMatches(theirMatches);
 
 	var diffMap = {};
@@ -34,7 +36,8 @@ function createMapfromTokenMatches(matches){
 	matches.forEach(function(a){		
 		var nameMatch = a.match(/name="(.+?)"/); 
 		var valueMatch = a.match(/value="(.+?)"/); 
-		tmpMap[nameMatch[1]] = valueMatch[1]
+		
+		tmpMap[nameMatch[1]] = valueMatch[1];
 	});
 
 	return tmpMap;
