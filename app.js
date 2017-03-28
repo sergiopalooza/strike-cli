@@ -476,7 +476,7 @@ function createStaticResource(name){
 				} 	
 			}
 		});
-	})
+	});
 }
 
 function createApplication(bundleId){
