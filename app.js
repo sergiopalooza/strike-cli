@@ -159,7 +159,7 @@ function downloadDependencyMap(callback){
 		if (response.statusCode !== 200) {
 			return console.error(chalk.red(response));
 		}
-		
+
 		var body = '';
 		
 		response.on('data', function(d){
@@ -173,7 +173,7 @@ function downloadDependencyMap(callback){
 	});
 }
 
-function downloadTargetComponents(callback, targetComponents){
+function downloadTargetComponents(callback){
 	log('entering downloadTargetComponents');
 
 	if(dependencyMap.hasOwnProperty(process.argv[3])){
