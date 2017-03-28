@@ -340,8 +340,10 @@ function createApexClass(bundle, callback){
 			body: contents
 		}, function(err){
 			if(err){
-				log(err);
-				if(err.errorCode === 'DUPLICATE_VALUE'){
+				if(err.errorCode === 'UNKNOWN_EXCEPTION'){
+					console.log(bundle + ' was skipped because an admin operation already in progress. Please try again in a few minutes');
+					callback();
+				} else if(err.errorCode === 'DUPLICATE_VALUE'){
 					async.waterfall([
 						function queryForApexClassId(callback){
 							log(chalk.cyan('Querying for Apex ID'));
@@ -380,7 +382,10 @@ function createApexClass(bundle, callback){
 								MetaDataContainerId: metaDataContainerId,
 								isCheckOnly: 'false'
 							}, function(err, res){
-								if (err) { return console.error(chalk.red(err)); }
+								if (err) {
+									console.log(chalk.red(typeof(err)));
+									console.log(chalk.red(err));
+								}
 								log(res);
 								callback(null, res);
 							});
