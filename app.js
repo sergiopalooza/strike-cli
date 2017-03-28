@@ -257,11 +257,6 @@ function validContent(body){
 	return body != '404: Not Found\n';
 }
 
-function doesComponentFolderExist(){
-
-	return fs.existsSync(process.cwd() + '/strike-components'); 
-}
-
 function configurePromptSchema(){
 	if(!credentialsExist()){
 		prompt.message = 'Strike-CLI';
@@ -320,11 +315,6 @@ function deleteFolderRecursive(path) {
 		});
 		fs.rmdirSync(path);
 	}
-}
-
-function bundleExists(response){
-
-	return response.records.length > 0;
 }
 
 function upsertFiles(bundleId, inputArgs, callback){
@@ -638,18 +628,6 @@ function configureHelpCommand(){
 	});
 
 	commander.parse(process.argv);
-}
-
-function downloadFlagExists() {
-	return process.argv[2] == '-download' || process.argv[2] == '-d';
-}
-
-function addFlagExists() {
-	return process.argv[2] == '-add' || process.argv[2] == '-a';
-}
-
-function setFlagExists() {
-	return process.argv[2] == '-set' || process.argv[2] == '-s';
 }
 
 function verboseFlagExists() {
