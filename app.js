@@ -567,7 +567,7 @@ function generateRandomName(prefix){
 		date.getMilliseconds()
 	];
 
-	var randomInt = dateComponents.join("");
+	var randomInt = dateComponents.join('');
 	var randomName = prefix + randomInt;
 	return randomName;
 }
