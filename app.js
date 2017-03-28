@@ -93,7 +93,6 @@ function upsertComponentFiles(callback){
 		if(isApex(bundle)){
 			log('we are not creating a bundle, we need to create an apex class instead');
 			createApexClass(bundle, function(){
-				console.log(bundle + ' was updated');
 				callback(null);	
 			});
 			
@@ -245,7 +244,7 @@ function downloadFile(fileName, fileExtension){
 				callback(null, body)
 			});
 		}
-	], function(err, result){
+	], function(err){
 		if (err) { return console.error(chalk.red(err)); }
 	});
 }
@@ -346,9 +345,9 @@ function createApexClass(bundle, callback){
 	fs.readFile(process.cwd() + '/strike-components/' + bundle, 'utf8', function(err, contents){
 		conn.tooling.sobject('ApexClass').create({
 			body: contents
-		}, function(err, res){
-			log(err);
+		}, function(err){
 			if(err){
+				log(err);
 				if(err.errorCode === 'DUPLICATE_VALUE'){
 					async.waterfall([
 						function queryForApexClassId(callback){
@@ -393,7 +392,9 @@ function createApexClass(bundle, callback){
 								callback(null, res);
 							})
 						}
-					], function(err, results){
+					], function(err){
+						if (err) { return console.error(chalk.red(err)); }
+						console.log(bundle + ' was updated');
 						callback();
 					});
 				}
@@ -465,7 +466,7 @@ function createStaticResource(name){
 			ContentType: 'text/javascript',
 			CacheControl: 'Public',
 			Name: name
-		}, function(err, res){
+		}, function(err){
 			if(err){
 				if(err.errorCode === 'DUPLICATE_DEVELOPER_NAME'){
 					console.log(name + ' static resource already exists');
@@ -497,7 +498,7 @@ function createComponentFile(bundleId, inputArgs, type){
 				DefType: type,
 				Format: fileFormatMap[type],
 				Source: contents
-			}, function(err, res){
+			}, function(err){
 				if (err) { return console.error(err); }
 			});
 		}
@@ -515,7 +516,7 @@ function upsertTokenFile(bundleId, inputArgs, type){
 				DefType: type,
 				Format: fileFormatMap[type],
 				Source: strikeContents
-			}, function(err, res){
+			}, function(err){
 				if (err) {
 					if(err.errorCode === 'DUPLICATE_VALUE'){
 						conn.tooling.query("Select Id, AuraDefinitionBundleId, DefType, SOURCE FROM AuraDefinition WHERE AuraDefinitionBundleId ='" + bundleId + "'" + "AND DefType ='"+ type + "'", function(err, res){
@@ -528,7 +529,7 @@ function upsertTokenFile(bundleId, inputArgs, type){
 							if(!linesToInsertArray.length == 0){
 								var mergedTokenFile = mergeTokenFile(remoteContents, linesToInsertArray);
 
-								conn.tooling.sobject('AuraDefinition').update({Id: fileId, Source: mergedTokenFile}, function(err, res){
+								conn.tooling.sobject('AuraDefinition').update({Id: fileId, Source: mergedTokenFile}, function(err){
 									if (err) { 
 										console.error(err); 
 									} else {
@@ -558,7 +559,7 @@ function upsertComponentFile(bundleId, inputArgs, type){
 				DefType: type,
 				Format: fileFormatMap[type],
 				Source: contents
-			}, function(err, res){
+			}, function(err){
 				if (err) {
 					if(err.errorCode === 'DUPLICATE_VALUE'){
 						log('we have an error trying to insert a duplicate file');
@@ -567,7 +568,7 @@ function upsertComponentFile(bundleId, inputArgs, type){
 							log(res.records[0].Id + ' is the existing ID');
 							var fileId = res.records[0].Id; 
 
-							conn.tooling.sobject('AuraDefinition').update({Id: fileId, Source: contents}, function(err, res){
+							conn.tooling.sobject('AuraDefinition').update({Id: fileId, Source: contents}, function(err){
 								if (err) { 
 									console.error(err); 
 								} else {
