@@ -469,35 +469,6 @@ function createStaticResource(name){
 	});
 }
 
-function createApplication(bundleId){
-	conn.tooling.sobject('AuraDefinition').create({
-		AuraDefinitionBundleId: bundleId,
-		DefType: 'APPLICATION',
-		Format: 'XML',
-		Source: '<aura:application></aura:application>'
-	}, function(err, res) {
-		if (err) { return console.error(err); }
-		console.log(res);
-	});
-}
-
-function createComponentFile(bundleId, inputArgs, type){
-	log('creating ' + type + ' file for ' + inputArgs.name);
-	fs.readFile(process.cwd() + '/strike-components/' + inputArgs.name + '/' + inputArgs.name + fileExtensionMap[type], 'utf8', function(err, contents){
-		log(process.cwd() + '/strike-components/' + inputArgs.name + '/' + inputArgs.name + fileExtensionMap[type]);
-		if(validContent(contents)){
-			conn.tooling.sobject('AuraDefinition').create({
-				AuraDefinitionBundleId: bundleId,
-				DefType: type,
-				Format: fileFormatMap[type],
-				Source: contents
-			}, function(err){
-				if (err) { return console.error(err); }
-			});
-		}
-	});
-}
-
 function upsertTokenFile(bundleId, inputArgs, type){
 	log('upserting ' + type + ' file for ' + inputArgs.name);
 	fs.readFile(process.cwd() + '/strike-components/' + inputArgs.name + '/' + inputArgs.name + fileExtensionMap[type], 'utf8', function(err, contents){
