@@ -156,7 +156,10 @@ function createStrikeComponentFolder(){
 
 function downloadDependencyMap(callback){
 	http.get(REPO_BASE_URL + '/dependency.json', function(response){
-		if (response.statusCode !== 200) { return console.error(chalk.red(err)); }
+		if (response.statusCode !== 200) {
+			return console.error(chalk.red(response));
+		}
+		
 		var body = '';
 		
 		response.on('data', function(d){
