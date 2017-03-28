@@ -191,7 +191,7 @@ function downloadTargetComponents(callback){
 
 function isApex(fileName){
 
-	return fileName.substring(fileName.length - 4) === '.cls'
+	return fileName.substring(fileName.length - 4) === '.cls';
 }
 
 function downloadComponentBundle(componentName){
@@ -225,7 +225,7 @@ function downloadFile(fileName, fileExtension){
 		fileSource = REPO_BASE_URL + '/classes/' + fileName;
 		fileDestination = fs.createWriteStream(process.cwd() + '/strike-components/' + fileName, {flags: 'w', mode: defaultPermissions});
 	} else {
-		fileSource = REPO_BASE_URL + '/aura/' + fileName + '/' + fileName + fileExtensionMap[fileExtension]
+		fileSource = REPO_BASE_URL + '/aura/' + fileName + '/' + fileName + fileExtensionMap[fileExtension];
 		fileDestination = fs.createWriteStream(process.cwd() + '/strike-components/' + fileName + '/' + fileName + fileExtensionMap[fileExtension], {flags: 'w', mode: defaultPermissions});
 	}
 
@@ -244,7 +244,7 @@ function downloadFile(fileName, fileExtension){
 			});
 
 			response.on('end', function(){
-				callback(null, body)
+				callback(null, body);
 			});
 		}
 	], function(err){
@@ -254,7 +254,7 @@ function downloadFile(fileName, fileExtension){
 
 function validContent(body){
 
-	return body != '404: Not Found\n'
+	return body != '404: Not Found\n';
 }
 
 function doesComponentFolderExist(){
@@ -284,7 +284,7 @@ function configurePromptSchema(){
 
 function credentialsExist(){
 
-	return db.get('credentials').find({ id: 1 }).value() != undefined
+	return db.get('credentials').find({ id: 1 }).value() != undefined;
 }
 
 function createUserInputObj(promptResponse){
@@ -336,7 +336,7 @@ function upsertFiles(bundleId, inputArgs, callback){
 		var fileTypes = ['COMPONENT', 'CONTROLLER', 'HELPER', 'RENDERER', 'EVENT', 'STYLE'];
 
 		fileTypes.forEach(function(fileType){
-			upsertComponentFile(bundleId, inputArgs, fileType)
+			upsertComponentFile(bundleId, inputArgs, fileType);
 		});
 	}
 	
@@ -393,7 +393,7 @@ function createApexClass(bundle, callback){
 								if (err) { return console.error(chalk.red(err)); }
 								log(res);
 								callback(null, res);
-							})
+							});
 						}
 					], function(err){
 						if (err) { return console.error(chalk.red(err)); }
@@ -406,7 +406,7 @@ function createApexClass(bundle, callback){
 				callback();	
 			}
 		});
-	})
+	});
 }
 
 function createAuraDefinitionBundle(inputArgs, callback){
@@ -434,7 +434,7 @@ function createAuraDefinitionBundle(inputArgs, callback){
 				{ return console.error(chalk.red(err)); }
 			}
 		} else{
-			console.log(inputArgs.name + ' bundle was created')
+			console.log(inputArgs.name + ' bundle was created');
 			bundleId = res.id;
 
 			upsertFiles(bundleId, inputArgs, function(){
@@ -505,7 +505,7 @@ function createComponentFile(bundleId, inputArgs, type){
 				if (err) { return console.error(err); }
 			});
 		}
-	})
+	});
 }
 
 function upsertTokenFile(bundleId, inputArgs, type){
@@ -549,7 +549,7 @@ function upsertTokenFile(bundleId, inputArgs, type){
 				}
 			});
 		}
-	})
+	});
 }
 
 function upsertComponentFile(bundleId, inputArgs, type){
@@ -587,7 +587,7 @@ function upsertComponentFile(bundleId, inputArgs, type){
 				}
 			});
 		}
-	})
+	});
 }
 
 function mergeTokenFile (originalContent, linesToInsertArray) {
