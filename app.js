@@ -345,7 +345,7 @@ function createApexClass(bundle, callback){
 					async.waterfall([
 						function queryForApexClassId(callback){
 							log(chalk.cyan('Querying for Apex ID'));
-							conn.tooling.query("SELECT Id, Name FROM ApexClass WHERE Name = " + "'" + bundle.substring(0, bundle.length - 4) + "'", function(err, res){
+							conn.tooling.query('SELECT Id, Name FROM ApexClass WHERE Name = ' + '\'' + bundle.substring(0, bundle.length - 4) + '\'', function(err, res){
 								if (err) { return console.error(chalk.red(err)); }
 								var fileId = res.records[0].Id;
 								callback(null, fileId) ;
@@ -411,7 +411,7 @@ function createAuraDefinitionBundle(inputArgs, callback){
 		
 		if(err){
 			if(err.errorCode === 'DUPLICATE_DEVELOPER_NAME'){
-				conn.tooling.query("Select Id, DeveloperName FROM AuraDefinitionBundle WHERE DeveloperName ='" + inputArgs.name + "'", function(err, res){
+				conn.tooling.query('Select Id, DeveloperName FROM AuraDefinitionBundle WHERE DeveloperName =\'' + inputArgs.name + '\'', function(err, res){
 					if (err) { return console.error(chalk.red(err)); }
 					console.log(res.records[0].DeveloperName + ' bundle already exists, updating its respective files...');
 					bundleId = res.records[0].Id;
@@ -483,7 +483,7 @@ function upsertTokenFile(bundleId, inputArgs, type){
 			}, function(err){
 				if (err) {
 					if(err.errorCode === 'DUPLICATE_VALUE'){
-						conn.tooling.query("Select Id, AuraDefinitionBundleId, DefType, SOURCE FROM AuraDefinition WHERE AuraDefinitionBundleId ='" + bundleId + "'" + "AND DefType ='"+ type + "'", function(err, res){
+						conn.tooling.query('Select Id, AuraDefinitionBundleId, DefType, SOURCE FROM AuraDefinition WHERE AuraDefinitionBundleId =\'' + bundleId + '\'' + 'AND DefType =\'' + type + '\'', function(err, res){
 							if (err) { return console.error(chalk.red(err)); }
 							var fileId = res.records[0].Id; 
 							var remoteContents = res.records[0].Source;
@@ -527,7 +527,7 @@ function upsertComponentFile(bundleId, inputArgs, type){
 				if (err) {
 					if(err.errorCode === 'DUPLICATE_VALUE'){
 						log('we have an error trying to insert a duplicate file');
-						conn.tooling.query("Select Id, AuraDefinitionBundleId, DefType FROM AuraDefinition WHERE AuraDefinitionBundleId ='" + bundleId + "'" + "AND DefType ='"+ type + "'", function(err, res){
+						conn.tooling.query('Select Id, AuraDefinitionBundleId, DefType FROM AuraDefinition WHERE AuraDefinitionBundleId =\'' + bundleId + '\'' + 'AND DefType =\'' + type + '\'', function(err, res){
 							if (err) { return console.error(chalk.red(err)); }
 							log(res.records[0].Id + ' is the existing ID');
 							var fileId = res.records[0].Id; 
