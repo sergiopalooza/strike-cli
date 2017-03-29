@@ -66,8 +66,8 @@ if(doesCommandExist('disconnect')){
 	});
 } else{
 	configureHelpCommand();
-	log('this is our argv array');
-	log(process.argv);
+	console.log('this is our argv array');
+	console.log(process.argv);
 	console.log(process.argv[2] + ' is not a valid command');
 	commander.outputHelp();
 }
