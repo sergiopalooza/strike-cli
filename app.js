@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 var fs = require('fs');
+var path = require('path');
 var http = require('https');
 var prompt = require('prompt');
 var jsforce = require('jsforce');
@@ -300,21 +301,18 @@ function saveUserInput(username, password){
 		.value();	
 }
 
-function deleteFolderRecursive(path) {
-	var files = [];
-	if( fs.existsSync(path) ) {
-		files = fs.readdirSync(path);
-		files.forEach(function(file){
-			var curPath = path + '/' + file;
-			if(fs.lstatSync(curPath).isDirectory()) { // recurse
-				deleteFolderRecursive(curPath);
-			} else { // delete file
-				fs.unlinkSync(curPath);
-				log('deleted ' + curPath);
-			}
-		});
-		fs.rmdirSync(path);
-	}
+function deleteFolderRecursive(dir_path) {
+    if(fs.existsSync(dir_path)) {
+        fs.readdirSync(dir_path).forEach(function(entry) {
+            var entry_path = path.join(dir_path, entry);
+            if (fs.lstatSync(entry_path).isDirectory()) {
+                deleteFolderRecursive(entry_path);
+            } else {
+                fs.unlinkSync(entry_path);
+            }
+        });
+        fs.rmdirSync(dir_path);
+    }
 }
 
 function upsertFiles(bundleId, inputArgs, callback){
