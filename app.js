@@ -313,7 +313,13 @@ function deleteFolderRecursive(dir_path) {
             }
         });
         console.log('removing this folder ' + dir_path);
-        fs.rmdirSync(dir_path);
+        try{
+        	fs.rmdirSync(dir_path);	
+        } catch(e){
+        	console.(e);
+        }
+        
+        console.log('after deleting');
     }
 }
 
