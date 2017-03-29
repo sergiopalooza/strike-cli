@@ -51,7 +51,6 @@ if(doesCommandExist('disconnect')){
 	});
 } else if(upsertCommandExists()){
 	drawScreen();
-	console.log(argv);
 	createStrikeComponentFolder();
 	prompt.start();
 	async.waterfall([
@@ -66,8 +65,6 @@ if(doesCommandExist('disconnect')){
 	});
 } else{
 	configureHelpCommand();
-	console.log('this is our argv array');
-	console.log(process.argv);
 	console.log(process.argv[2] + ' is not a valid command');
 	commander.outputHelp();
 }
