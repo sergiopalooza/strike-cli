@@ -308,9 +308,11 @@ function deleteFolderRecursive(dir_path) {
             if (fs.lstatSync(entry_path).isDirectory()) {
                 deleteFolderRecursive(entry_path);
             } else {
+            	console.log('removing this file ' + entry_path);
                 fs.unlinkSync(entry_path);
             }
         });
+        console.log('removing this folder ' + dir_path);
         fs.rmdirSync(dir_path);
     }
 }
