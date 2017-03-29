@@ -316,7 +316,7 @@ function deleteFolderRecursive(dir_path) {
         try{
         	fs.rmdirSync(dir_path);	
         } catch(e){
-        	console.(e);
+        	console.log(e);
         }
         
         console.log('after deleting');
