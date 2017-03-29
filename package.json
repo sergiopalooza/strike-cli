@@ -1,6 +1,6 @@
 {
   "name": "proto-strike-cli",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Prototype for Strike-CLI",
   "main": "app.js",
   "scripts": {
