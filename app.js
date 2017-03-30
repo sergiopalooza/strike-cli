@@ -36,7 +36,7 @@ const fileFormatMap = {
 	TOKENS: 'XML',
 	STYLE: 'CSS'
 };
-
+//testing to see how npm knows about git status
 var dependencyMap;
 var conn = new jsforce.Connection();
 
