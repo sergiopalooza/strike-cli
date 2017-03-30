@@ -12,6 +12,7 @@ var db = low('db.json');
 var async = require('async');
 var commander = require('commander');
 var tokenParser = require('./tokenParser.js');
+var rimraf = require('rimraf');
 
 const REPO_BASE_URL = 'https://raw.githubusercontent.com/appiphony/Strike-Components/master';
 
@@ -62,7 +63,11 @@ if(doesCommandExist('disconnect')){
 		upsertComponentFiles,
 	], function(err){
 		if (err) { return console.error(chalk.red(err)); }
-		deleteFolderRecursive(process.cwd() + '/strike-components');
+		rimraf(process.cwd() + '/strike-components', function (err) {
+			if (err) { return console.error(chalk.red(err)); }
+			log('done cleaing up');
+		});
+
 	});
 } else{
 	configureHelpCommand();
@@ -151,8 +156,11 @@ function drawScreen(){
 }
 
 function createStrikeComponentFolder(){
-	deleteFolderRecursive(process.cwd() + '/strike-components'); //uncomment if you want to create the folder everytime
-	fs.existsSync(process.cwd() + '/strike-components') || fs.mkdirSync(process.cwd() + '/strike-components');	
+	rimraf(process.cwd() + '/strike-components', function (err) {
+		if (err) { return console.error(chalk.red(err)); }
+		log('done cleaing up');
+		fs.existsSync(process.cwd() + '/strike-components') || fs.mkdirSync(process.cwd() + '/strike-components');	
+	});
 }
 
 function downloadDependencyMap(callback){
@@ -299,28 +307,6 @@ function saveUserInput(username, password){
 	db.get('credentials')
 		.push({ id: 1, username: username, password: password})
 		.value();	
-}
-
-function deleteFolderRecursive(dir_path) {
-    if(fs.existsSync(dir_path)) {
-        fs.readdirSync(dir_path).forEach(function(entry) {
-            var entry_path = path.join(dir_path, entry);
-            if (fs.lstatSync(entry_path).isDirectory()) {
-                deleteFolderRecursive(entry_path);
-            } else {
-            	console.log('removing this file ' + entry_path);
-                fs.unlinkSync(entry_path);
-            }
-        });
-        console.log('removing this folder ' + dir_path);
-        try{
-        	fs.rmdirSync(dir_path);	
-        } catch(e){
-        	console.log(e);
-        }
-        
-        console.log('after deleting');
-    }
 }
 
 function upsertFiles(bundleId, inputArgs, callback){
