@@ -1,2 +1,2 @@
-# proto-strike-cli
-Sergio smells *good*
+# strike-cli
+Work in progress
