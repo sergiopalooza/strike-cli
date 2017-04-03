@@ -87,8 +87,14 @@ function getUserInput(callback){
 function login(userInput, callback){
 	log('entering login');
 	conn.login(userInput.username, userInput.password, function(err) {
-		if (err) { return console.error(chalk.red(err)); }
-		callback(null);
+		if (err) {
+			console.error(chalk.red(err));
+			rimraf(process.cwd() + '/strike-components', function (err) {
+				if (err) { return console.error(chalk.red(err)); }
+			}); 
+		} else{
+			callback(null);
+		}
 	});
 }
 
