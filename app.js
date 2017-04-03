@@ -62,12 +62,10 @@ if(doesCommandExist('disconnect')){
 		login,
 		upsertComponentFiles,
 	], function(err){
-		if (err) { return console.error(chalk.red(err)); }
+		if (err) { console.error(chalk.red(err)); }
 		rimraf(process.cwd() + '/strike-components', function (err) {
 			if (err) { return console.error(chalk.red(err)); }
-			log('done cleaing up');
 		});
-
 	});
 } else{
 	configureHelpCommand();
@@ -88,10 +86,7 @@ function login(userInput, callback){
 	log('entering login');
 	conn.login(userInput.username, userInput.password, function(err) {
 		if (err) {
-			console.error(chalk.red(err));
-			rimraf(process.cwd() + '/strike-components', function (err) {
-				if (err) { return console.error(chalk.red(err)); }
-			}); 
+			callback(err); 
 		} else{
 			callback(null);
 		}
@@ -121,8 +116,7 @@ function upsertComponentFiles(callback){
 			createAuraDefinitionBundle(tmpBundleInfo, function(){
 				callback(null);
 			});					
-		}
-			
+		}	
 	}, function(err){
 		if(err) {
 			callback(null, err);
@@ -200,7 +194,7 @@ function downloadTargetComponents(callback){
 		
 		callback(null);
 	} else {
-		console.log('Sorry, ' + process.argv[3] + ' is not a supported component');
+		callback(new Error('Sorry, ' + process.argv[3] + ' is not a supported component'));
 	}
 }
 
