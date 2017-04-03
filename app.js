@@ -570,6 +570,11 @@ function generateRandomName(prefix){
 
 function configureHelpCommand(){
 	drawScreen();
+
+	commander.__proto__.addImplicitHelpCommand = function () { //this is to prevent the implicit help command. The documenation for this does not have another way to prevent this behaviour
+		this.command('help', 'display help');
+	} 
+
 	commander
 		.usage('<command> [component_name]')
 		.command('install', 'upsert specified component and dependencies to your org')
