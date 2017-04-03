@@ -8,7 +8,6 @@ var chalk = require('chalk');
 var figlet = require('figlet');
 var clear = require('clear');
 var low = require('lowdb');
-var db = low('db.json');
 var async = require('async');
 var commander = require('commander');
 var tokenParser = require('./tokenParser.js');
@@ -37,21 +36,24 @@ const fileFormatMap = {
 	STYLE: 'CSS'
 };
 
+var db;
 var dependencyMap;
 var conn = new jsforce.Connection();
 
-intializeDatabase();
+
 
 if(doesCommandExist('disconnect')){
 	fs.unlinkSync(process.cwd() + '/db.json');
 	console.log('Credentials have been disconnected');
 } else if(doesCommandExist('connect')){
+	initializeDatabase();
 	prompt.start();
 	getUserInput(function(callback, userInput){
 		saveUserInput(userInput.username, userInput.password);
 		console.log('Credentials for ' + userInput.username + ' connected');
 	});
 } else if(upsertCommandExists()){
+	// initializeDatabase();
 	drawScreen();
 	createStrikeComponentFolder();
 	prompt.start();
@@ -138,7 +140,8 @@ function upsertCommandExists(){
 	return process.argv[2] == 'install' || process.argv[2] == 'update' || process.argv[2] == 'upsert';
 }
 
-function intializeDatabase (){
+function initializeDatabase(){
+	db = low('db.json');
 	db.defaults({ credentials: []})
 		.value();	
 }
@@ -549,7 +552,7 @@ function configureHelpCommand(){
 	drawScreen();
 
 	commander.__proto__.addImplicitHelpCommand = function () { //this is to prevent the implicit help command. The documenation for this does not have another way to prevent this behaviour
-		
+
 	} 
 
 	commander
