@@ -74,7 +74,6 @@ if(doesCommandExist('disconnect')){
 }
 
 function getUserInput(callback){
-	log('entering getUserInput');
 	prompt.get(configurePromptSchema(), function (err, res){
 		if (err) { return console.error(chalk.red(err)); }
 		var userInput = createUserInputObj(res);
@@ -83,7 +82,6 @@ function getUserInput(callback){
 }
 
 function login(userInput, callback){
-	log('entering login');
 	conn.login(userInput.username, userInput.password, function(err) {
 		if (err) {
 			callback(err); 
@@ -94,11 +92,10 @@ function login(userInput, callback){
 }
 
 function upsertComponentFiles(callback){
-	log('entering upsertComponentFiles');
 	var bundlesToCreate = dependencyMap[process.argv[3]];
 	async.eachSeries(bundlesToCreate, function(bundle, callback){
 		if(isApex(bundle)){
-			log('we are not creating a bundle, we need to create an apex class instead');
+			//we are not creating a bundle, we need to create an apex class instead
 			createApexClass(bundle, function(){
 				callback(null);	
 			});
@@ -158,7 +155,6 @@ function drawScreen(){
 function createStrikeComponentFolder(){
 	rimraf(process.cwd() + '/strike-components', function (err) {
 		if (err) { return console.error(chalk.red(err)); }
-		log('done cleaing up');
 		fs.existsSync(process.cwd() + '/strike-components') || fs.mkdirSync(process.cwd() + '/strike-components');	
 	});
 }
@@ -183,8 +179,6 @@ function downloadDependencyMap(callback){
 }
 
 function downloadTargetComponents(callback){
-	log('entering downloadTargetComponents');
-
 	if(dependencyMap.hasOwnProperty(process.argv[3])){
 		var targetComponents = dependencyMap[process.argv[3]];
 
@@ -337,7 +331,6 @@ function createApexClass(bundle, callback){
 				} else if(err.errorCode === 'DUPLICATE_VALUE'){
 					async.waterfall([
 						function queryForApexClassId(callback){
-							log(chalk.cyan('Querying for Apex ID'));
 							conn.tooling.query('SELECT Id, Name FROM ApexClass WHERE Name = ' + '\'' + bundle.substring(0, bundle.length - 4) + '\'', function(err, res){
 								if (err) { return console.error(chalk.red(err)); }
 								var fileId = res.records[0].Id;
@@ -345,30 +338,25 @@ function createApexClass(bundle, callback){
 							});
 						},
 						function createMetaDataContainer(fileId, callback){
-							log(chalk.cyan('Creating MetaDataContainer'));
 							conn.tooling.sobject('MetaDataContainer').create({
 								Name: generateRandomName('Container')
 							}, function(err, res){
 								if (err) { return console.error(chalk.red(err)); }
-								log(res);
 								var metaDataContainerId = res.id;
 								callback(null, fileId, metaDataContainerId);
 							});
 						},
 						function createApexClassMember(fileId, metaDataContainerId, callback){
-							log(chalk.cyan('Creating ApexClassMember'));
 							conn.tooling.sobject('ApexClassMember').create({
 								MetaDataContainerId: metaDataContainerId,
 								ContentEntityId: fileId,
 								Body: contents
 							}, function(err, res){
 								if (err) { return console.error(chalk.red(err)); }
-								log(res);
 								callback(null, metaDataContainerId);
 							});
 						},
 						function createContainerAsyncRequest(metaDataContainerId, callback){
-							log(chalk.cyan('Creating containerAsyncRequest'));
 							conn.tooling.sobject('containerAsyncRequest').create({
 								MetaDataContainerId: metaDataContainerId,
 								isCheckOnly: 'false'
@@ -377,7 +365,6 @@ function createApexClass(bundle, callback){
 									console.log(chalk.red(typeof(err)));
 									console.log(chalk.red(err));
 								}
-								log(res);
 								callback(null, res);
 							});
 						}
@@ -441,11 +428,9 @@ function isToken(name){
 }
 
 function createStaticResource(name){
-	log('we are in createStaticResource');
-
 	fs.readFile(process.cwd() + '/strike-components/' + name + '.resource', 'utf8', function(err, contents){
 		if(err){
-			log(err);
+			console.log(err);
 		} else {
 			var encodedBody = new Buffer(contents).toString('base64');
 		}
@@ -466,9 +451,7 @@ function createStaticResource(name){
 }
 
 function upsertTokenFile(bundleId, inputArgs, type){
-	log('upserting ' + type + ' file for ' + inputArgs.name);
 	fs.readFile(process.cwd() + '/strike-components/' + inputArgs.name + '/' + inputArgs.name + fileExtensionMap[type], 'utf8', function(err, contents){
-		log('reading from ' + process.cwd() + '/strike-components/' + inputArgs.name + '/' + inputArgs.name + fileExtensionMap[type]);
 		if(validContent(contents)){
 			var strikeContents = contents;
 			conn.tooling.sobject('AuraDefinition').create({
@@ -510,9 +493,7 @@ function upsertTokenFile(bundleId, inputArgs, type){
 }
 
 function upsertComponentFile(bundleId, inputArgs, type){
-	log('upserting ' + type + ' file for ' + inputArgs.name);
 	fs.readFile(process.cwd() + '/strike-components/' + inputArgs.name + '/' + inputArgs.name + fileExtensionMap[type], 'utf8', function(err, contents){
-		log('reading from ' + process.cwd() + '/strike-components/' + inputArgs.name + '/' + inputArgs.name + fileExtensionMap[type]);
 		if(validContent(contents)){
 			conn.tooling.sobject('AuraDefinition').create({
 				AuraDefinitionBundleId: bundleId,
@@ -522,10 +503,8 @@ function upsertComponentFile(bundleId, inputArgs, type){
 			}, function(err){
 				if (err) {
 					if(err.errorCode === 'DUPLICATE_VALUE'){
-						log('we have an error trying to insert a duplicate file');
 						conn.tooling.query('Select Id, AuraDefinitionBundleId, DefType FROM AuraDefinition WHERE AuraDefinitionBundleId =\'' + bundleId + '\'' + 'AND DefType =\'' + type + '\'', function(err, res){
 							if (err) { return console.error(chalk.red(err)); }
-							log(res.records[0].Id + ' is the existing ID');
 							var fileId = res.records[0].Id; 
 
 							conn.tooling.sobject('AuraDefinition').update({Id: fileId, Source: contents}, function(err){
@@ -550,9 +529,7 @@ function upsertComponentFile(bundleId, inputArgs, type){
 function mergeTokenFile (originalContent, linesToInsertArray) {
 	var regexForFooter = /<\/aura:tokens>/g;
 	var mergedSource = originalContent.replace(regexForFooter, linesToInsertArray.join(''));
-	log('----------------------');
-	log(mergedSource);
-	log('----------------------');
+
 	return mergedSource;
 }
 
@@ -581,8 +558,7 @@ function configureHelpCommand(){
 		.command('update', 'upsert specified component and dependencies to your org')
 		.command('upsert', 'upsert specified component and dependencies to your org')
 		.command('connect', 'connect/store credentials')
-		.command('disconnect', 'disconnects stored credentials')
-		.option('-v, --verbose', 'verbose mode for development');
+		.command('disconnect', 'disconnects stored credentials');
 		
 	commander.on('--help', function(){
 		console.log('  Supported Components:');
