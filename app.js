@@ -304,8 +304,7 @@ function createUserInputObj(promptResponse){
 }
 
 function saveUserInput(username, password){
-	db.get('credentials')
-		.push({ id: 1, username: username, password: password})
+	db.set('credentials[0]', { id: 1, username: username, password: password})
 		.value();	
 }
 
