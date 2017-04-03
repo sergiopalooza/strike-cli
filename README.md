@@ -4,7 +4,8 @@
 [npm-badge]: https://img.shields.io/npm/v/strike-cli.svg
 [npm-badge-url]: https://www.npmjs.com/package/strike-cli
 
----
+Get the Appiphony Strike Components into your Salesforce Organization through our CLI.
+See our components here: http://www.lightningstrike.io
 
 ## Installation
 
