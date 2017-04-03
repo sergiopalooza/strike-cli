@@ -52,7 +52,7 @@ This will create a db.json file in the current folder with the entered credentia
 Please use responsibly.
 
 
-### Build the project
+### Remove stored credentials
 
 ```
 strike disconnect
