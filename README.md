@@ -1,8 +1,8 @@
 # Strike-CLI by Appiphony
 [![Latest NPM release][npm-badge]][npm-badge-url]
 
-[npm-badge]: https://img.shields.io/npm/v/ember-cli.svg
-[npm-badge-url]: https://www.npmjs.com/package/ember-cli
+[npm-badge]: https://img.shields.io/npm/v/strike-cli.svg
+[npm-badge-url]: https://www.npmjs.com/package/strike-cli
 
 ---
 
