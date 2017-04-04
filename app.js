@@ -53,7 +53,7 @@ if(doesCommandExist('disconnect')){
 		console.log('Credentials for ' + userInput.username + ' connected');
 	});
 } else if(upsertCommandExists()){
-	// initializeDatabase();
+	initializeDatabase();
 	drawScreen();
 	createStrikeComponentFolder();
 	prompt.start();
