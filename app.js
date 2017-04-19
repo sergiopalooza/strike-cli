@@ -575,9 +575,17 @@ function configureHelpCommand(){
 		console.log('    <strike_datepicker>');
 		console.log('    <strike_multiSelectPicklist>');
 		console.log('    <strike_lookup>');
+		console.log('    <strike_tile>');
+		console.log('    <strike_multiLookup>');
+		console.log('    <strike_popover>');
+		console.log('    <strike_option>');
+		console.log('    <strike_optionGroup>');
+		console.log('    <strike_svg>');
+		console.log('    <defaultTokens>');
+		console.log('    <strike_input>');
 		console.log('');
 	});
-
+		
 	commander.parse(process.argv);
 }
 
