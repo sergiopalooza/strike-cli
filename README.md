@@ -23,6 +23,13 @@ See our components here: http://www.lightningstrike.io
 * Select
 * Textarea
 * Tooltip
+* Tile
+* MultiLookup
+* Popover
+* Option
+* Option Group
+* SVG
+* Input
 
 
 Usage
