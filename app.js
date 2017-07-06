@@ -70,9 +70,11 @@ if(doesCommandExist('disconnect')){
 		});
 	});
 } else{
-	configureHelpCommand();
-	console.log(process.argv[2] + ' is not a valid command');
-	commander.outputHelp();
+	downloadDependencyMap(function(){
+		configureHelpCommand();
+		console.log(process.argv[2] + ' is not a valid command');
+		commander.outputHelp();
+	});
 }
 
 function getUserInput(callback){
@@ -566,24 +568,9 @@ function configureHelpCommand(){
 	commander.on('--help', function(){
 		console.log('  Supported Components:');
 		console.log('');
-		console.log('    <strike_tooltip>');
-		console.log('    <strike_badge>');
-		console.log('    <strike_chart>');
-		console.log('    <strike_modal>');
-		console.log('    <strike_textarea>');
-		console.log('    <strike_select>');
-		console.log('    <strike_datepicker>');
-		console.log('    <strike_multiSelectPicklist>');
-		console.log('    <strike_lookup>');
-		console.log('    <strike_tile>');
-		console.log('    <strike_multiLookup>');
-		console.log('    <strike_popover>');
-		console.log('    <strike_option>');
-		console.log('    <strike_optionGroup>');
-		console.log('    <strike_svg>');
-		console.log('    <defaultTokens>');
-		console.log('    <strike_input>');
-		console.log('');
+		Object.keys(dependencyMap).forEach(function(key){
+			console.log('    <' + key + '>');
+		});
 	});
 		
 	commander.parse(process.argv);
