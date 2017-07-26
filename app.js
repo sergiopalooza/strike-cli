@@ -14,6 +14,8 @@ var tokenParser = require('./tokenParser.js');
 var rimraf = require('rimraf');
 
 const REPO_BASE_URL = 'https://raw.githubusercontent.com/appiphony/Strike-Components/master';
+const SANDBOX_URL = 'https://test.salesforce.com';
+const DEVELOPER_EDITION_URL = 'https://login.salesforce.com';
 
 const fileExtensionMap = {
 	COMPONENT: '.cmp',
@@ -38,9 +40,9 @@ const fileFormatMap = {
 
 var db;
 var dependencyMap;
-var conn = new jsforce.Connection();
-
-
+var conn = new jsforce.Connection({
+	loginUrl: getLoginUrl()
+});
 
 if(doesCommandExist('disconnect')){
 	fs.unlinkSync(process.cwd() + '/db.json');
@@ -75,6 +77,11 @@ if(doesCommandExist('disconnect')){
 		console.log(process.argv[2] + ' is not a valid command');
 		commander.outputHelp();
 	});
+}
+
+function getLoginUrl(){
+	
+	return sandboxFlagExists() ? SANDBOX_URL : DEVELOPER_EDITION_URL;
 }
 
 function getUserInput(callback){
@@ -564,6 +571,8 @@ function configureHelpCommand(){
 		.command('disconnect', 'disconnects stored credentials');
 		
 	commander.on('--help', function(){
+		console.log('    -s, --sandbox  login to a sandbox org instead');
+		console.log('');
 		console.log('  Supported Components:');
 		console.log('');
 		Object.keys(dependencyMap).forEach(function(key){
@@ -576,6 +585,10 @@ function configureHelpCommand(){
 
 function verboseFlagExists() {
 	return process.argv.indexOf('-v') > -1 || process.argv.indexOf('--verbose') > -1;
+}
+
+function sandboxFlagExists() {
+	return process.argv.indexOf('-s') > -1 || process.argv.indexOf('--sandbox') > -1;
 }
 
 function log(text){
