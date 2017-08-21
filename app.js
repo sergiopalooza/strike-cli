@@ -80,7 +80,7 @@ if(doesCommandExist('disconnect')){
 }
 
 function getLoginUrl(){
-	
+
 	return sandboxFlagExists() ? SANDBOX_URL : DEVELOPER_EDITION_URL;
 }
 
@@ -399,7 +399,7 @@ function createAuraDefinitionBundle(inputArgs, callback){
 		Description: inputArgs.description, // my description
 		DeveloperName: inputArgs.name,
 		MasterLabel: inputArgs.name, 
-		ApiVersion:'36.0'
+		ApiVersion:'40.0'
 	}, 	function(err, res){
 		
 		var bundleId;
